@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#c8f542">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FitLog">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>FitLog — Tu sistema de entrenamiento</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
@@ -1386,6 +1393,53 @@ renderEjercicios();
 
 // Verificar conexión con Google Sheets al cargar
 checkSheetsConnection();
+
+// ═══════════════════════════════════════════
+//  PWA — Service Worker + Install Banner
+// ═══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/fitlog/sw.js', { scope: '/fitlog/' })
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.warn('SW error:', err));
+  });
+
+  // Escuchar mensajes del SW (sync)
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data?.type === 'SYNC_READY') {
+      showToast('Sincronizando datos pendientes…');
+    }
+  });
+}
+
+// Banner de instalación
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Mostrar botón de instalación en el nav
+  const btn = document.createElement('button');
+  btn.id = 'btn-install';
+  btn.className = 'btn btn-sm';
+  btn.style.cssText = 'margin-left:8px;background:var(--acc);color:#0a1200;font-size:0.72rem;padding:5px 10px;border-radius:6px';
+  btn.textContent = '⬇ Instalar';
+  btn.onclick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      btn.remove();
+      showToast('¡FitLog instalada! Búscala en tu pantalla de inicio');
+    }
+    deferredPrompt = null;
+  };
+  document.querySelector('nav').appendChild(btn);
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('btn-install')?.remove();
+  showToast('¡FitLog instalada correctamente! 🎉');
+});
 </script>
 </body>
 </html>
