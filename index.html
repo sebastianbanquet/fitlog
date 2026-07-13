@@ -337,7 +337,8 @@ textarea{resize:vertical;min-height:72px}
       <div class="chip" data-val="ninguna" onclick="selectChip(this,'chips-actividad')">Descanso</div>
       <div class="chip" data-val="tren_sup1" onclick="selectChip(this,'chips-actividad')">💪 Tren Superior A</div>
       <div class="chip" data-val="tren_sup2" onclick="selectChip(this,'chips-actividad')">💪 Tren Superior B</div>
-      <div class="chip" data-val="pierna" onclick="selectChip(this,'chips-actividad')">🦵 Pierna</div>
+      <div class="chip" data-val="pierna1" onclick="selectChip(this,'chips-actividad')">🦵 Pierna 1</div>
+      <div class="chip" data-val="pierna2" onclick="selectChip(this,'chips-actividad')">🦵 Pierna 2</div>
       <div class="chip chip-orange" data-val="trote" onclick="selectChip(this,'chips-actividad')">🏃 Trote</div>
     </div>
     <div id="trote-box" style="display:none;margin-top:14px">
@@ -368,7 +369,8 @@ textarea{resize:vertical;min-height:72px}
     <div class="chips" id="chips-rutina">
       <div class="chip active" data-val="tren_sup1" onclick="selectRutina(this)">Tren Superior A</div>
       <div class="chip" data-val="tren_sup2" onclick="selectRutina(this)">Tren Superior B</div>
-      <div class="chip" data-val="pierna" onclick="selectRutina(this)">Pierna</div>
+      <div class="chip" data-val="pierna1" onclick="selectRutina(this)">Pierna 1</div>
+      <div class="chip" data-val="pierna2" onclick="selectRutina(this)">Pierna 2</div>
     </div>
   </div>
 
@@ -903,39 +905,52 @@ const PESO_CORPORAL = 82; // kg promedio rango
 const RUTINAS = {
   tren_sup1: {
     nombre: 'Tren Superior A',
-    kcal_base: 320,
+    kcal_base: 330,
     ejercicios: [
-      { id:'ps_inclinado', nombre:'Press Banco Inclinado', maquina:false, series_base:4, reps_base:12, peso_base_kg:60.8 },
-      { id:'halon_cerrado', nombre:'Jalón Agarre Cerrado', maquina:true, series_base:3, reps_base:8, peso_base_kg:50 },
-      { id:'pres_militar', nombre:'Press Militar Mancuerna', maquina:false, series_base:4, reps_base:10, peso_base_kg:22 },
-      { id:'pec_contractor', nombre:'Máquina Pectoral Contractor', maquina:true, series_base:3, reps_base:10, peso_base_kg:65.8 },
-      { id:'remo_maquina', nombre:'Remo Sentado Máquina', maquina:true, series_base:3, reps_base:10, peso_base_kg:45 },
-      { id:'ext_tricep_a', nombre:'Extensión Trícep Polea', maquina:true, series_base:4, reps_base:10, peso_base_kg:24.9 },
-      { id:'curl_bic_a', nombre:'Curl Bícep Mancuerna', maquina:false, series_base:4, reps_base:12, peso_base_kg:10 },
+      { id:'ps_inclinado',     nombre:'Press Banco Inclinado',              maquina:false, series_base:4, reps_base:12, peso_base_kg:60.8 },
+      { id:'halon_cerrado',    nombre:'Jalón Agarre Cerrado',               maquina:true,  series_base:3, reps_base:8,  peso_base_kg:50   },
+      { id:'pres_militar',     nombre:'Press Militar Mancuerna',            maquina:false, series_base:4, reps_base:10, peso_base_kg:22   },
+      { id:'pec_contractor',   nombre:'Máquina Pectoral Contractor',        maquina:true,  series_base:3, reps_base:10, peso_base_kg:65.8 },
+      { id:'remo_maquina',     nombre:'Remo Sentado Máquina',               maquina:true,  series_base:3, reps_base:10, peso_base_kg:45   },
+      { id:'ext_tricep_a',     nombre:'Extensión Trícep Polea',             maquina:true,  series_base:4, reps_base:10, peso_base_kg:24.9 },
+      { id:'curl_bic_a',       nombre:'Curl Bícep Mancuerna',               maquina:false, series_base:4, reps_base:12, peso_base_kg:10   },
+      { id:'elev_lat_a',       nombre:'Elevaciones Laterales Mancuerna',    maquina:false, series_base:3, reps_base:10, peso_base_kg:10   },
     ]
   },
   tren_sup2: {
     nombre: 'Tren Superior B',
-    kcal_base: 310,
+    kcal_base: 320,
     ejercicios: [
-      { id:'ps_plano', nombre:'Press Banco Plano', maquina:false, series_base:4, reps_base:12, peso_base_kg:60.8 },
-      { id:'halon_pecho', nombre:'Jalón al Pecho Polea', maquina:true, series_base:4, reps_base:12, peso_base_kg:64 },
-      { id:'elev_lat', nombre:'Elevaciones Laterales Mancuerna', maquina:false, series_base:4, reps_base:10, peso_base_kg:10 },
-      { id:'ps_inc_mancuerna', nombre:'Press Inclinado Mancuerna', maquina:false, series_base:3, reps_base:12, peso_base_kg:25 },
-      { id:'pullover', nombre:'Pull Over + Jalón a la Cara (biserie)', maquina:true, series_base:3, reps_base:10, peso_base_kg:22.5 },
-      { id:'ext_tricep_b', nombre:'Extensión Trícep Polea', maquina:true, series_base:3, reps_base:10, peso_base_kg:17.5 },
-      { id:'curl_bic_b', nombre:'Curl Bícep Mancuerna', maquina:false, series_base:4, reps_base:10, peso_base_kg:10 },
+      { id:'ps_plano',         nombre:'Press Banco Plano',                  maquina:false, series_base:4, reps_base:12, peso_base_kg:60.8 },
+      { id:'halon_pecho',      nombre:'Jalón al Pecho Polea',               maquina:true,  series_base:4, reps_base:12, peso_base_kg:64   },
+      { id:'elev_lat_b',       nombre:'Elevaciones Laterales Mancuerna',    maquina:false, series_base:4, reps_base:10, peso_base_kg:10   },
+      { id:'ps_inc_mancuerna', nombre:'Press Inclinado Mancuerna',          maquina:false, series_base:3, reps_base:12, peso_base_kg:25   },
+      { id:'pullover',         nombre:'Pull Over + Jalón a la Cara (biserie)', maquina:true, series_base:3, reps_base:10, peso_base_kg:22.5 },
+      { id:'ext_tricep_b',     nombre:'Extensión Trícep Polea',             maquina:true,  series_base:3, reps_base:10, peso_base_kg:17.5 },
+      { id:'curl_bic_b',       nombre:'Curl Bícep Mancuerna',               maquina:false, series_base:4, reps_base:10, peso_base_kg:10   },
+      { id:'elev_lat_b2',      nombre:'Elevaciones Laterales Mancuerna',    maquina:false, series_base:3, reps_base:10, peso_base_kg:10   },
     ]
   },
-  pierna: {
-    nombre: 'Pierna',
+  pierna1: {
+    nombre: 'Pierna 1 — Cuádriceps',
+    kcal_base: 440,
+    ejercicios: [
+      { id:'sentadilla',       nombre:'Sentadilla Libre',                   maquina:false, series_base:4, reps_base:7,  peso_base_kg:60.8 },
+      { id:'sent_bulgara',     nombre:'Sentadilla Búlgara',                 maquina:false, series_base:3, reps_base:9,  peso_base_kg:20   },
+      { id:'ext_cuad',         nombre:'Extensión Cuádricep Máquina',        maquina:true,  series_base:3, reps_base:13, peso_base_kg:45.4 },
+      { id:'curl_fem_ac',      nombre:'Curl Femoral Acostado',              maquina:true,  series_base:3, reps_base:11, peso_base_kg:45.4 },
+      { id:'gemelos_sent',     nombre:'Gemelos Máquina Sentado',            maquina:true,  series_base:4, reps_base:13, peso_base_kg:20.4 },
+    ]
+  },
+  pierna2: {
+    nombre: 'Pierna 2 — Posterior',
     kcal_base: 420,
     ejercicios: [
-      { id:'sentadilla', nombre:'Sentadilla Libre', maquina:false, series_base:4, reps_base:12, peso_base_kg:60.8 },
-      { id:'peso_muerto', nombre:'Peso Muerto', maquina:false, series_base:3, reps_base:12, peso_base_kg:60.8 },
-      { id:'ext_cuad', nombre:'Extensión Cuádricep Máquina', maquina:true, series_base:4, reps_base:12, peso_base_kg:45.4 },
-      { id:'ext_femoral', nombre:'Extensión Femoral Acostado', maquina:true, series_base:4, reps_base:12, peso_base_kg:45.4 },
-      { id:'gemelos', nombre:'Gemelos Máquina Sentado', maquina:true, series_base:4, reps_base:12, peso_base_kg:20.4 },
+      { id:'peso_muerto_rum',  nombre:'Peso Muerto Rumano',                 maquina:false, series_base:4, reps_base:9,  peso_base_kg:60.8 },
+      { id:'hip_thrust',       nombre:'Hip Thrust',                         maquina:false, series_base:3, reps_base:10, peso_base_kg:60.8 },
+      { id:'curl_fem_ac2',     nombre:'Curl Femoral',                       maquina:true,  series_base:3, reps_base:11, peso_base_kg:45.4 },
+      { id:'ext_cuad2',        nombre:'Extensión Cuádricep Máquina',        maquina:true,  series_base:3, reps_base:13, peso_base_kg:45.4 },
+      { id:'gemelos_pie',      nombre:'Gemelos de Pie',                     maquina:true,  series_base:4, reps_base:13, peso_base_kg:30   },
     ]
   }
 };
@@ -1001,7 +1016,7 @@ function selectChip(el, groupId) {
   actividadHoy = el.dataset.val;
   // mostrar trote / gym box
   document.getElementById('trote-box').style.display = actividadHoy==='trote' ? 'block' : 'none';
-  const isGym = ['tren_sup1','tren_sup2','pierna'].includes(actividadHoy);
+  const isGym = ['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy);
   document.getElementById('gym-kcal-box').style.display = isGym ? 'block' : 'none';
   if (isGym) {
     const kcal = calcKcalGym(actividadHoy, null);
@@ -1036,7 +1051,7 @@ function updateBalance() {
     const tKcal = calcKcalTrote(km, tmin);
     kcalOut += tKcal;
     document.getElementById('trote-kcal').textContent = tKcal;
-  } else if (['tren_sup1','tren_sup2','pierna'].includes(actividadHoy)) {
+  } else if (['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy)) {
     kcalOut += calcKcalGym(actividadHoy, null);
   }
   // TDEE base reposición: ~2100 para 82kg recomposición
@@ -1118,7 +1133,7 @@ async function guardarDia() {
   const kcalIn = +document.getElementById('inp-kcal').value || 0;
   let kcalOut = Math.round((+document.getElementById('inp-pasos').value||0) * 0.04);
   if (actividadHoy==='trote') kcalOut += calcKcalTrote(km, tmin);
-  else if (['tren_sup1','tren_sup2','pierna'].includes(actividadHoy)) kcalOut += calcKcalGym(actividadHoy, null);
+  else if (['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy)) kcalOut += calcKcalGym(actividadHoy, null);
 
   const entrada = {
     fecha: hoy,
@@ -1241,10 +1256,6 @@ async function guardarEntreno() {
   }
 }
 
-// ═══════════════════════════════════════════
-//  PROGRESO
-// ═══════════════════════════════════════════
-function renderProgreso() {
 // ═══════════════════════════════════════════
 //  PROGRESO — GRÁFICAS AVANZADAS
 // ═══════════════════════════════════════════
@@ -1412,7 +1423,7 @@ function renderHistorialDias() {
     const div=document.createElement('div');
     div.className='hist-entry';
     const balColor=d.balance>200?'var(--acc3)':d.balance<-200?'var(--acc4)':'var(--acc)';
-    const act={ninguna:'Descanso',tren_sup1:'💪 Tren Sup A',tren_sup2:'💪 Tren Sup B',pierna:'🦵 Pierna',trote:'🏃 Trote'}[d.actividad]||d.actividad;
+    const act={ninguna:'Descanso',tren_sup1:'💪 Tren Sup A',tren_sup2:'💪 Tren Sup B',pierna1:'🦵 Pierna 1',pierna2:'🦵 Pierna 2',trote:'🏃 Trote'}[d.actividad]||d.actividad;
     div.innerHTML=`<div class="hist-date">${d.fechaLabel}</div>
       <div class="hist-row"><div class="hist-title">${act}</div><div style="font-size:0.85rem;font-weight:700;color:${balColor}">${d.balance>0?'+':''}${d.balance} kcal</div></div>
       <div class="hist-stats">
@@ -1442,7 +1453,7 @@ function generarNotion() {
   const d = dias.find(x=>x.fecha===fecha);
   if (!d) return;
   const entr = entrenos.filter(e=>e.fecha===fecha);
-  const act = { ninguna:'Descanso', tren_sup1:'Tren Superior A', tren_sup2:'Tren Superior B', pierna:'Pierna', trote:'Trote' }[d.actividad]||d.actividad;
+  const act = { ninguna:'Descanso', tren_sup1:'Tren Superior A', tren_sup2:'Tren Superior B', pierna1:'Pierna 1',pierna2:'Pierna 2', trote:'Trote' }[d.actividad]||d.actividad;
 
   let txt = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 ${d.fechaLabel.toUpperCase()}
@@ -1576,7 +1587,7 @@ if (todayData) {
   });
   // Mostrar trote/gym box si aplica
   document.getElementById('trote-box').style.display = actividadHoy==='trote' ? 'block' : 'none';
-  const isGym = ['tren_sup1','tren_sup2','pierna'].includes(actividadHoy);
+  const isGym = ['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy);
   document.getElementById('gym-kcal-box').style.display = isGym ? 'block' : 'none';
   if (isGym) {
     document.getElementById('gym-kcal-val').textContent = calcKcalGym(actividadHoy, null);
