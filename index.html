@@ -313,10 +313,17 @@ textarea{resize:vertical;min-height:72px}
     <div class="div"></div>
 
     <!-- Otros datos del día -->
-    <div class="g2">
-      <div class="field"><label>Pasos del día</label><input type="number" id="inp-pasos" placeholder="8000" min="0"></div>
-      <div class="field"><label>Agua (L)</label><input type="number" id="inp-agua" placeholder="2.5" step="0.1" min="0"></div>
+    <div class="field">
+      <label>Pasos del día</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="inp-pasos" placeholder="8000" min="0" style="flex:1">
+        <button class="btn btn-ghost btn-sm" id="btn-fit" onclick="sincronizarGoogleFit()" title="Sincronizar con Google Fit" style="white-space:nowrap;flex-shrink:0">
+          🏃 Sync Fit
+        </button>
+      </div>
+      <div id="fit-status" style="font-size:0.72rem;color:var(--muted);margin-top:4px;display:none"></div>
     </div>
+    <div class="field"><label>Agua (L)</label><input type="number" id="inp-agua" placeholder="2.5" step="0.1" min="0"></div>
     <div class="g2">
       <div class="field"><label>Peso corporal (kg)</label><input type="number" id="inp-peso" placeholder="82" step="0.1" min="0"></div>
       <div class="field"><label>Horas de sueño</label><input type="number" id="inp-sueno" placeholder="7.5" step="0.5" min="0" max="12"></div>
@@ -632,8 +639,9 @@ async function analizarFotoComida() {
   btn.disabled = true;
   document.getElementById('food-loader').style.display = 'flex';
 
-  const sys = `Eres un nutricionista experto con visión computacional especializado en comida colombiana y latinoamericana.
-Analiza la foto del plato y devuelve ÚNICAMENTE un JSON válido sin texto extra ni markdown:
+  const GEMINI_KEY = 'AQ.Ab8RN6KfDXAzH37F3LfepEbDBLTLHqGcLdaxGQKHq3O0CuP_jA';
+  const prompt = `Eres un nutricionista experto especializado en comida colombiana y latinoamericana.
+Analiza esta foto de comida y devuelve ÚNICAMENTE un JSON válido sin texto extra ni markdown:
 {
   "alimentos": [
     {"nombre": "<nombre en español>", "gramos_estimados": <número>, "kcal": <número>, "prot_g": <número>, "carb_g": <número>, "fat_g": <número>}
@@ -644,22 +652,33 @@ Analiza la foto del plato y devuelve ÚNICAMENTE un JSON válido sin texto extra
 Los macros deben ser coherentes con los gramos estimados. Sé preciso con porciones visuales típicas colombianas.`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:1000,
-        system: sys,
-        messages:[{role:'user', content:[
-          {type:'image', source:{type:'base64', media_type:foodType, data:foodB64}},
-          {type:'text', text:'Analiza este plato y devuelve el JSON nutricional.'}
-        ]}]
-      })
-    });
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: foodType, data: foodB64 } }
+            ]
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
+        })
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || `Error ${resp.status}`);
+    }
+
     const data = await resp.json();
-    const raw = data.content.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(raw);
-    // Agregar cada alimento a la lista
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
     (parsed.alimentos||[]).forEach(a => {
       comidasHoy.push({
         nombre: a.nombre,
@@ -675,10 +694,10 @@ Los macros deben ser coherentes con los gramos estimados. Sé preciso con porcio
     actualizarTotalesComida();
     clearFoodPhoto();
     showToast(`${parsed.alimentos?.length||0} alimentos detectados ✓`);
-    // Mostrar nota si hay
-    if (parsed.notas) showToast(parsed.notas);
+
   } catch(err) {
     showToast('Error al analizar: ' + err.message);
+    console.error(err);
   } finally {
     document.getElementById('food-loader').style.display = 'none';
     btn.disabled = false;
@@ -1551,6 +1570,134 @@ async function checkSheetsConnection() {
 }
 
 // ═══════════════════════════════════════════
+//  GOOGLE FIT — Sincronización de pasos
+// ═══════════════════════════════════════════
+const FIT_CLIENT_ID = '462537453975-3mujjf9pinp9gdmfnc5ltvr98ajq0h9d.apps.googleusercontent.com';
+const FIT_SCOPE     = 'https://www.googleapis.com/auth/fitness.activity.read';
+let fitToken = null;
+
+function setFitStatus(msg, color='var(--muted)') {
+  const el = document.getElementById('fit-status');
+  el.style.display = 'block';
+  el.style.color = color;
+  el.textContent = msg;
+}
+
+async function sincronizarGoogleFit() {
+  const btn = document.getElementById('btn-fit');
+  btn.disabled = true;
+  btn.textContent = '⏳ Conectando…';
+  setFitStatus('Abriendo Google Fit…');
+
+  try {
+    // 1. Obtener token OAuth via popup
+    fitToken = await getGoogleFitToken();
+    setFitStatus('Conectado · Obteniendo pasos…', 'var(--acc)');
+
+    // 2. Calcular rango del día actual (medianoche a medianoche en ms)
+    const ahora   = new Date();
+    const inicio  = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0).getTime();
+    const fin     = ahora.getTime();
+
+    // 3. Llamar a Fitness API — aggregate steps
+    const resp = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${fitToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+        bucketByTime: { durationMillis: fin - inicio },
+        startTimeMillis: inicio,
+        endTimeMillis: fin
+      })
+    });
+
+    if (!resp.ok) throw new Error(`Fit API error ${resp.status}`);
+    const data = await resp.json();
+
+    // 4. Sumar pasos de todos los buckets
+    let totalPasos = 0;
+    (data.bucket || []).forEach(b => {
+      (b.dataset || []).forEach(ds => {
+        (ds.point || []).forEach(p => {
+          (p.value || []).forEach(v => { totalPasos += v.intVal || 0; });
+        });
+      });
+    });
+
+    // 5. Actualizar input
+    document.getElementById('inp-pasos').value = totalPasos;
+    updateBalance();
+    setFitStatus(`✓ ${totalPasos.toLocaleString()} pasos sincronizados desde Google Fit`, 'var(--acc)');
+    showToast(`${totalPasos.toLocaleString()} pasos desde Google Fit ✓`);
+
+  } catch(err) {
+    console.error('Google Fit error:', err);
+    setFitStatus('Error: ' + err.message, '#f87171');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🏃 Sync Fit';
+  }
+}
+
+function getGoogleFitToken() {
+  return new Promise((resolve, reject) => {
+    // Abrir popup OAuth de Google
+    const params = new URLSearchParams({
+      client_id:     FIT_CLIENT_ID,
+      redirect_uri:  'https://sebastianbanquet.github.io/fitlog/',
+      response_type: 'token',
+      scope:         FIT_SCOPE,
+      include_granted_scopes: 'true',
+      state: 'fit_auth'
+    });
+
+    const popup = window.open(
+      `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+      'GoogleFitAuth',
+      'width=500,height=600,scrollbars=yes'
+    );
+
+    if (!popup) {
+      reject(new Error('No se pudo abrir el popup. Permite popups para este sitio.'));
+      return;
+    }
+
+    // Escuchar cuando el popup regrese con el token
+    const timer = setInterval(() => {
+      try {
+        if (popup.closed) {
+          clearInterval(timer);
+          reject(new Error('Autenticación cancelada'));
+          return;
+        }
+        const url = popup.location.href;
+        if (url && url.includes('sebastianbanquet.github.io/fitlog')) {
+          const hash = popup.location.hash;
+          popup.close();
+          clearInterval(timer);
+          const tokenParams = new URLSearchParams(hash.replace('#',''));
+          const token = tokenParams.get('access_token');
+          if (token) resolve(token);
+          else reject(new Error('No se obtuvo token de acceso'));
+        }
+      } catch(e) {
+        // Cross-origin mientras carga Google — ignorar
+      }
+    }, 500);
+
+    // Timeout de 2 minutos
+    setTimeout(() => {
+      clearInterval(timer);
+      if (!popup.closed) popup.close();
+      reject(new Error('Tiempo de espera agotado'));
+    }, 120000);
+  });
+}
+
+// ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
 document.getElementById('fechaHoy').textContent =
@@ -1678,7 +1825,8 @@ window.verProgreso     = verProgreso;
 window.setPeriodo      = setPeriodo;
 window.setGrafMode     = setGrafMode;
 window.clearFoodPhoto  = clearFoodPhoto;
-window.analizarFotoComida = analizarFotoComida;
+window.analizarFotoComida  = analizarFotoComida;
+window.sincronizarGoogleFit = sincronizarGoogleFit;
 </script>
 </body>
 </html>
