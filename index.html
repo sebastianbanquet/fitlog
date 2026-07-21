@@ -227,7 +227,7 @@ textarea{resize:vertical;min-height:72px}
     <div class="card-title">Balance del día</div>
     <div class="g4" style="margin-bottom:14px">
       <div class="stat-box"><div class="stat-val c-acc2" id="s-kcal-in">0</div><div class="stat-lbl">Kcal ingeridas</div></div>
-      <div class="stat-box"><div class="stat-val c-acc3" id="s-kcal-out">0</div><div class="stat-lbl">Kcal quemadas</div></div>
+      <div class="stat-box"><div class="stat-val c-acc3" id="s-kcal-out">0</div><div class="stat-lbl">Kcal quemadas totales</div></div>
       <div class="stat-box"><div class="stat-val c-acc" id="s-balance">0</div><div class="stat-lbl">Balance neto</div></div>
       <div class="stat-box"><div class="stat-val" id="s-pasos" style="color:#f0c040">0</div><div class="stat-lbl">Pasos</div></div>
     </div>
@@ -639,44 +639,22 @@ async function analizarFotoComida() {
   btn.disabled = true;
   document.getElementById('food-loader').style.display = 'flex';
 
-  const GEMINI_KEY = 'AQ.Ab8RN6KfDXAzH37F3LfepEbDBLTLHqGcLdaxGQKHq3O0CuP_jA';
-  const prompt = `Eres un nutricionista experto especializado en comida colombiana y latinoamericana.
-Analiza esta foto de comida y devuelve ÚNICAMENTE un JSON válido sin texto extra ni markdown:
-{
-  "alimentos": [
-    {"nombre": "<nombre en español>", "gramos_estimados": <número>, "kcal": <número>, "prot_g": <número>, "carb_g": <número>, "fat_g": <número>}
-  ],
-  "total_kcal": <número>,
-  "notas": "<observación breve>"
-}
-Los macros deben ser coherentes con los gramos estimados. Sé preciso con porciones visuales típicas colombianas.`;
-
   try {
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: foodType, data: foodB64 } }
-            ]
-          }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
-        })
-      }
-    );
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'analyzeFood',
+        imageBase64: foodB64,
+        mimeType: foodType
+      })
+    });
 
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error?.message || `Error ${resp.status}`);
-    }
-
+    if (!resp.ok) throw new Error(`Error ${resp.status}`);
     const data = await resp.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
+    if (!data.ok) throw new Error(data.error || 'Error en análisis');
+
+    const clean = data.result.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
 
     (parsed.alimentos||[]).forEach(a => {
@@ -1056,6 +1034,13 @@ function selectRutina(el) {
 //  HOY — balance en tiempo real
 // ═══════════════════════════════════════════
 
+// TDEE base para Sebastian: 82kg, 174cm, 27 años, trabajo sedentario
+// TMB Mifflin-St Jeor: (10×82) + (6.25×174) - (5×27) + 5 = 1,777 kcal
+// Factor sedentario: × 1.2 = 2,132 kcal solo por existir (sin ejercicio)
+const TMB_BASE = 1777;
+const FACTOR_ACTIVIDAD = 1.2;
+const TDEE_BASE = Math.round(TMB_BASE * FACTOR_ACTIVIDAD); // 2,132 kcal
+
 function updateBalance() {
   const kcalIn = +document.getElementById('inp-kcal').value || 0;
   const pasos  = +document.getElementById('inp-pasos').value || 0;
@@ -1065,22 +1050,38 @@ function updateBalance() {
   const km     = +document.getElementById('inp-km').value || 0;
   const tmin   = +document.getElementById('inp-tmin').value || 0;
 
-  let kcalOut = Math.round(pasos * 0.04); // ~0.04 kcal/paso para 82kg
+  // Calorías quemadas = metabolismo basal + pasos + ejercicio
+  let kcalEjercicio = 0;
   if (actividadHoy === 'trote') {
-    const tKcal = calcKcalTrote(km, tmin);
-    kcalOut += tKcal;
-    document.getElementById('trote-kcal').textContent = tKcal;
+    kcalEjercicio = calcKcalTrote(km, tmin);
+    document.getElementById('trote-kcal').textContent = kcalEjercicio;
   } else if (['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy)) {
-    kcalOut += calcKcalGym(actividadHoy, null);
+    kcalEjercicio = calcKcalGym(actividadHoy, null);
   }
-  // TDEE base reposición: ~2100 para 82kg recomposición
-  const balance = kcalIn - kcalOut;
-  document.getElementById('s-kcal-in').textContent = kcalIn;
+
+  // Calorías de pasos (solo las adicionales al TDEE base)
+  // 0.04 kcal/paso - ya incluidas en TDEE_BASE ~3000 pasos básicos
+  const pasosExtra = Math.max(0, pasos - 3000);
+  const kcalPasos  = Math.round(pasosExtra * 0.04);
+
+  const kcalOut  = TDEE_BASE + kcalEjercicio + kcalPasos;
+  const balance  = kcalIn - kcalOut;
+
+  document.getElementById('s-kcal-in').textContent  = kcalIn;
   document.getElementById('s-kcal-out').textContent = kcalOut;
-  document.getElementById('s-balance').textContent = (balance>0?'+':'')+balance;
-  document.getElementById('s-balance').style.color = balance > 200 ? 'var(--acc3)' : balance < -300 ? 'var(--acc4)' : 'var(--acc)';
-  document.getElementById('s-pasos').textContent = pasos.toLocaleString();
-  // macros bars (metas: 160g prot, 220g carb, 70g fat)
+  document.getElementById('s-balance').textContent  = (balance>0?'+':'')+balance;
+  document.getElementById('s-balance').style.color  = balance > 200 ? 'var(--acc3)' : balance < -300 ? 'var(--acc4)' : 'var(--acc)';
+  document.getElementById('s-pasos').textContent    = pasos.toLocaleString();
+
+  // Actualizar label de kcal quemadas con desglose
+  const gymBox = document.getElementById('gym-kcal-val');
+  if (gymBox && kcalEjercicio > 0) {
+    gymBox.textContent = kcalEjercicio;
+    document.getElementById('gym-kcal-desc').textContent =
+      `Ejercicio: ${kcalEjercicio} + Metabolismo: ${TDEE_BASE} + Pasos extra: ${kcalPasos} = ${kcalOut} kcal totales`;
+  }
+
+  // Macros bars (metas recomposición: 160g prot, 220g carb, 70g fat)
   document.getElementById('b-prot-val').textContent = prot+'g';
   document.getElementById('b-carb-val').textContent = carb+'g';
   document.getElementById('b-fat-val').textContent  = fat+'g';
@@ -1092,7 +1093,7 @@ function updateBalance() {
 // ═══════════════════════════════════════════
 //  GOOGLE SHEETS — via Apps Script Web App
 // ═══════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwo13D5XTHWWlJhTkx56j4mJKPN9LOM01Jbmisn48eU2FI4opSKe5l0BrXvlbuHduHl/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLpIaGWp8Nc-3_6SHcsLMccf_EkUj6rBVCrKWCD2u8FW1VXsdUbbxgVPWsrqL5K5Cp/exec';
 
 async function scriptPost(payload) {
   const r = await fetch(APPS_SCRIPT_URL, {
