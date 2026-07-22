@@ -388,61 +388,158 @@ textarea{resize:vertical;min-height:72px}
 
 <!-- ══════════════ TAB: PROGRESO ══════════════ -->
 <div class="page" id="tab-progreso">
-  <div class="sec-title" style="font-family:var(--fd);font-size:1.2rem;margin-bottom:20px">Progreso</div>
+  <div class="sec-title" style="font-family:var(--fd);font-size:1.2rem;margin-bottom:16px">Progreso</div>
 
-  <!-- Selector período -->
-  <div style="display:flex;gap:8px;margin-bottom:16px">
-    <button class="btn btn-primary btn-sm" id="btn-p30" onclick="setPeriodo(30)" style="flex:1">30 días</button>
-    <button class="btn btn-ghost btn-sm" id="btn-ptodo" onclick="setPeriodo(0)" style="flex:1">Histórico</button>
+  <!-- Sub-tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;scrollbar-width:none">
+    <button class="btn btn-primary btn-sm" id="ptab-btn-graficas" onclick="setProgresoTab('graficas')" style="white-space:nowrap">📈 Gráficas</button>
+    <button class="btn btn-ghost btn-sm" id="ptab-btn-medidas" onclick="setProgresoTab('medidas')" style="white-space:nowrap">📏 Medidas</button>
+    <button class="btn btn-ghost btn-sm" id="ptab-btn-gemelo" onclick="setProgresoTab('gemelo')" style="white-space:nowrap">🧍 Gemelo</button>
+    <button class="btn btn-ghost btn-sm" id="ptab-btn-ejercicios" onclick="setProgresoTab('ejercicios')" style="white-space:nowrap">💪 Ejercicios</button>
+    <button class="btn btn-ghost btn-sm" id="ptab-btn-historial" onclick="setProgresoTab('historial')" style="white-space:nowrap">📅 Historial</button>
   </div>
 
-  <!-- Peso corporal -->
-  <div class="card">
-    <div class="card-title">⚖️ Evolución de peso (kg)</div>
-    <div id="chart-peso-adv" style="height:120px;display:flex;align-items:flex-end;gap:3px;padding-top:8px;overflow-x:auto"></div>
-    <div id="peso-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
-  </div>
-
-  <!-- Calorías -->
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">🔥 Calorías ingeridas vs quemadas</div>
-    <div id="chart-kcal-adv" style="height:120px;display:flex;align-items:flex-end;gap:3px;padding-top:8px;overflow-x:auto"></div>
-    <div id="kcal-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
-  </div>
-
-  <!-- Progreso ejercicios -->
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">💪 Sobrecarga progresiva</div>
-    <div class="field" style="margin-bottom:12px">
-      <label>Ejercicio</label>
-      <select id="sel-ejercicio" onchange="verProgreso()">
-        <option value="">Selecciona un ejercicio...</option>
-      </select>
+  <!-- ── GRÁFICAS ── -->
+  <div id="ptab-graficas">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-primary btn-sm" id="btn-p30" onclick="setPeriodo(30)" style="flex:1">30 días</button>
+      <button class="btn btn-ghost btn-sm" id="btn-ptodo" onclick="setPeriodo(0)" style="flex:1">Histórico</button>
     </div>
-
-    <!-- Toggle peso vs volumen -->
-    <div id="progreso-toggle" style="display:none;gap:8px;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" id="btn-graf-peso" onclick="setGrafMode('peso')" style="flex:1">Peso máximo</button>
-      <button class="btn btn-ghost btn-sm" id="btn-graf-vol" onclick="setGrafMode('volumen')" style="flex:1">Volumen total</button>
+    <div class="card">
+      <div class="card-title">⚖️ Evolución de peso (kg)</div>
+      <svg id="chart-peso-svg" width="100%" height="140" style="overflow:visible"></svg>
+      <div id="peso-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
     </div>
-
-    <!-- Gráfica ejercicio -->
-    <div id="graf-ejercicio-wrap" style="display:none">
-      <div style="position:relative;height:140px;margin-bottom:8px">
-        <canvas id="graf-ejercicio" style="width:100%;height:140px"></canvas>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">🔥 Calorías ingeridas vs quemadas</div>
+      <svg id="chart-kcal-svg" width="100%" height="140" style="overflow:visible"></svg>
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:var(--muted2)">
+        <span><span style="display:inline-block;width:10px;height:3px;background:var(--acc2);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Ingeridas</span>
+        <span><span style="display:inline-block;width:10px;height:3px;background:var(--acc3);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Quemadas</span>
       </div>
-      <div id="graf-ejercicio-bars" style="display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px;overflow-x:auto"></div>
-      <div id="progreso-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
+      <div id="kcal-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
     </div>
-
-    <!-- Tabla detalle -->
-    <div id="progreso-ejercicio" style="margin-top:12px"></div>
+    <!-- % Grasa en gráfica -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">💧 % Grasa corporal</div>
+      <svg id="chart-grasa-svg" width="100%" height="140" style="overflow:visible"></svg>
+      <div id="grasa-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
+    </div>
   </div>
 
-  <!-- Historial días -->
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">📅 Historial de días</div>
-    <div id="historial-dias"></div>
+  <!-- ── MEDIDAS MENSUALES ── -->
+  <div id="ptab-medidas" style="display:none">
+    <div class="card">
+      <div class="card-title">📏 Registro mensual de medidas</div>
+      <div class="g2">
+        <div class="field"><label>Mes</label>
+          <select id="med-mes">
+            <option>Enero</option><option>Febrero</option><option>Marzo</option>
+            <option>Abril</option><option>Mayo</option><option>Junio</option>
+            <option>Julio</option><option>Agosto</option><option>Septiembre</option>
+            <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
+        </div>
+        <div class="field"><label>Año</label><input type="number" id="med-anio" value="2025" min="2024" max="2030"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Peso (kg)</label><input type="number" id="med-peso" placeholder="82" step="0.1"></div>
+        <div class="field"><label>Cuello (cm) *</label><input type="number" id="med-cuello" placeholder="38" step="0.5"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Cintura (cm) *</label><input type="number" id="med-cintura" placeholder="85" step="0.5"></div>
+        <div class="field"><label>Cadera (cm)</label><input type="number" id="med-cadera" placeholder="95" step="0.5"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Pecho (cm)</label><input type="number" id="med-pecho" placeholder="100" step="0.5"></div>
+        <div class="field"><label>Hombros (cm)</label><input type="number" id="med-hombros" placeholder="115" step="0.5"></div>
+      </div>
+      <div class="g3">
+        <div class="field"><label>Brazo (cm)</label><input type="number" id="med-brazo" placeholder="35" step="0.5"></div>
+        <div class="field"><label>Muslo (cm)</label><input type="number" id="med-muslo" placeholder="58" step="0.5"></div>
+        <div class="field"><label>Pantorrilla (cm)</label><input type="number" id="med-pantorrilla" placeholder="38" step="0.5"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px">* Cuello y cintura son obligatorios para calcular % de grasa</div>
+
+      <!-- Foto mensual -->
+      <div class="card-title" style="margin-bottom:8px">📸 Foto del mes</div>
+      <div class="upload-food" id="med-foto-zone" style="margin-bottom:12px">
+        <input type="file" id="med-foto-input" accept="image/*" capture="environment">
+        <span style="font-size:1.5rem">📷</span>
+        <div style="font-size:0.82rem;margin-top:4px">Foto frontal del mes</div>
+      </div>
+      <img id="med-foto-preview" style="display:none;width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">
+
+      <!-- Resultado % grasa -->
+      <div id="med-grasa-result" style="display:none;background:var(--s2);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center">
+        <div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:var(--acc4)" id="med-grasa-val">—</div>
+        <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">% Grasa corporal</div>
+        <div style="font-size:0.78rem;color:var(--muted2);margin-top:6px" id="med-grasa-cat">—</div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="guardarMedidas()">Guardar medidas del mes</button>
+    </div>
+
+    <!-- Historial medidas -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Historial de medidas</div>
+      <div id="medidas-historial"></div>
+    </div>
+  </div>
+
+  <!-- ── GEMELO DIGITAL ── -->
+  <div id="ptab-gemelo" style="display:none">
+    <div class="card">
+      <div class="card-title">🧍 Gemelo digital — evolución física</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:center" id="gemelo-mes-selector"></div>
+      <div style="display:flex;gap:12px;justify-content:center;align-items:flex-end" id="gemelo-comparacion">
+        <div style="text-align:center;flex:1">
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Inicio</div>
+          <svg id="gemelo-svg-inicio" viewBox="0 0 120 280" width="120" height="280"></svg>
+        </div>
+        <div style="text-align:center;flex:1">
+          <div style="font-size:0.7rem;color:var(--acc);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Actual</div>
+          <svg id="gemelo-svg-actual" viewBox="0 0 120 280" width="120" height="280"></svg>
+        </div>
+      </div>
+      <div id="gemelo-stats" style="margin-top:16px"></div>
+    </div>
+
+    <!-- Galería fotos -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">📸 Galería de progreso</div>
+      <div id="galeria-fotos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    </div>
+  </div>
+
+  <!-- ── EJERCICIOS ── -->
+  <div id="ptab-ejercicios" style="display:none">
+    <div class="card">
+      <div class="card-title">💪 Sobrecarga progresiva</div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Ejercicio</label>
+        <select id="sel-ejercicio" onchange="verProgreso()">
+          <option value="">Selecciona un ejercicio...</option>
+        </select>
+      </div>
+      <div id="progreso-toggle" style="display:none;gap:8px;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" id="btn-graf-peso" onclick="setGrafMode('peso')" style="flex:1">Peso máximo</button>
+        <button class="btn btn-ghost btn-sm" id="btn-graf-vol" onclick="setGrafMode('volumen')" style="flex:1">Volumen total</button>
+      </div>
+      <div id="graf-ejercicio-wrap" style="display:none">
+        <svg id="graf-ejercicio-svg" width="100%" height="140" style="overflow:visible;margin-bottom:8px"></svg>
+        <div id="progreso-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
+      </div>
+      <div id="progreso-ejercicio" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- ── HISTORIAL ── -->
+  <div id="ptab-historial" style="display:none">
+    <div class="card">
+      <div class="card-title">📅 Historial de días</div>
+      <div id="historial-dias"></div>
+    </div>
   </div>
 </div>
 
@@ -1277,89 +1374,506 @@ async function guardarEntreno() {
 }
 
 // ═══════════════════════════════════════════
-//  PROGRESO — GRÁFICAS AVANZADAS
+//  PROGRESO — SUB-TABS
 // ═══════════════════════════════════════════
 let periodoActivo = 30;
 let grafMode = 'peso';
+let progresoTabActivo = 'graficas';
+
+function setProgresoTab(tab) {
+  progresoTabActivo = tab;
+  ['graficas','medidas','gemelo','ejercicios','historial'].forEach(t => {
+    document.getElementById(`ptab-${t}`).style.display = t===tab ? 'block' : 'none';
+    const btn = document.getElementById(`ptab-btn-${t}`);
+    if (btn) btn.className = 'btn btn-sm ' + (t===tab ? 'btn-primary' : 'btn-ghost');
+  });
+  if (tab==='graficas')   renderGraficas();
+  if (tab==='medidas')    renderMedidasHistorial();
+  if (tab==='gemelo')     renderGemelo();
+  if (tab==='ejercicios') renderSelectEjercicios();
+  if (tab==='historial')  renderHistorialDias();
+}
 
 function setPeriodo(d) {
   periodoActivo = d;
-  document.getElementById('btn-p30').className   = 'btn btn-sm ' + (d===30 ? 'btn-primary' : 'btn-ghost');
-  document.getElementById('btn-ptodo').className = 'btn btn-sm ' + (d===0  ? 'btn-primary' : 'btn-ghost');
-  renderProgreso();
+  document.getElementById('btn-p30').className   = 'btn btn-sm ' + (d===30?'btn-primary':'btn-ghost');
+  document.getElementById('btn-ptodo').className = 'btn btn-sm ' + (d===0 ?'btn-primary':'btn-ghost');
+  renderGraficas();
 }
 
 function setGrafMode(mode) {
   grafMode = mode;
-  document.getElementById('btn-graf-peso').className = 'btn btn-sm ' + (mode==='peso'    ? 'btn-primary' : 'btn-ghost');
-  document.getElementById('btn-graf-vol').className  = 'btn btn-sm ' + (mode==='volumen' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('btn-graf-peso').className = 'btn btn-sm '+(mode==='peso'   ?'btn-primary':'btn-ghost');
+  document.getElementById('btn-graf-vol').className  = 'btn btn-sm '+(mode==='volumen'?'btn-primary':'btn-ghost');
   verProgreso();
 }
 
 function renderProgreso() {
-  const df = periodoActivo > 0 ? dias.slice(-periodoActivo) : dias;
-  renderChartAvanzado('chart-peso-adv', df.filter(d=>d.peso>0), d=>d.peso, '#818cf8', 'kg', 'peso-stats');
-  renderChartDoble('chart-kcal-adv', df.filter(d=>d.kcal>0), 'kcal-stats');
-  renderHistorialDias();
-  renderSelectEjercicios();
+  setProgresoTab(progresoTabActivo);
 }
 
-function renderChartAvanzado(contId, data, valFn, color, unit, statsId) {
-  const cont = document.getElementById(contId);
-  cont.innerHTML = '';
-  if (!data||data.length===0) { cont.innerHTML='<div style="color:var(--muted);font-size:0.8rem;margin:auto">Sin datos aún</div>'; if(statsId) document.getElementById(statsId).innerHTML=''; return; }
-  const vals = data.map(valFn).filter(v=>v>0);
-  const max = Math.max(...vals), min = Math.min(...vals);
-  data.forEach(d => {
-    const v = valFn(d); if(!v) return;
-    const pct = max===min ? 60 : 15+((v-min)/(max-min))*75;
-    const lbl = (d.fecha||'').slice(5);
-    const bc = document.createElement('div');
-    bc.style.cssText='flex:1;min-width:20px;display:flex;flex-direction:column;align-items:center;gap:3px';
-    bc.title=`${lbl}: ${v} ${unit}`;
-    bc.innerHTML=`<div style="width:100%;border-radius:3px 3px 0 0;background:${color};opacity:0.85;height:${pct}%;min-height:4px"></div>
-      <div style="font-size:0.58rem;color:var(--muted);white-space:nowrap;transform:rotate(-40deg);transform-origin:top left;margin-top:2px">${lbl}</div>`;
-    cont.appendChild(bc);
+// ═══════════════════════════════════════════
+//  GRÁFICAS DE LÍNEA SVG
+// ═══════════════════════════════════════════
+function renderGraficas() {
+  const df = periodoActivo>0 ? dias.slice(-periodoActivo) : dias;
+  renderLineChart('chart-peso-svg', df.filter(d=>d.peso>0), [d=>d.peso], ['#818cf8'], ['Peso'], 'peso-stats', 'kg');
+  renderLineChartDoble('chart-kcal-svg', df.filter(d=>d.kcal>0), 'kcal-stats');
+  renderGrasaChart();
+}
+
+function renderLineChart(svgId, data, valFns, colors, labels, statsId, unit) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const W = svg.parentElement.clientWidth || 320;
+  const H = 130;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.innerHTML = '';
+
+  if (!data || data.length < 2) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#5a6278" font-size="12">Sin datos aún</text>`;
+    if (statsId) document.getElementById(statsId).innerHTML = '';
+    return;
+  }
+
+  const pad = { t:10, r:16, b:28, l:36 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+
+  valFns.forEach((valFn, vi) => {
+    const vals = data.map(valFn).filter(v=>v>0);
+    if (vals.length < 2) return;
+    const min = Math.min(...vals) * 0.98;
+    const max = Math.max(...vals) * 1.02;
+
+    const pts = data.map((d,i) => {
+      const v = valFn(d);
+      const x = pad.l + (i/(data.length-1))*cW;
+      const y = pad.t + cH - ((v-min)/(max-min))*cH;
+      return {x, y, v, lbl:(d.fecha||'').slice(5)};
+    }).filter(p=>p.v>0);
+
+    // Área degradada
+    const areaPath = `M${pts[0].x},${pad.t+cH} ` +
+      pts.map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') +
+      ` L${pts[pts.length-1].x},${pad.t+cH} Z`;
+    const areaSvg = document.createElementNS('http://www.w3.org/2000/svg','path');
+    areaSvg.setAttribute('d', areaPath);
+    areaSvg.setAttribute('fill', colors[vi]);
+    areaSvg.setAttribute('opacity','0.08');
+    svg.appendChild(areaSvg);
+
+    // Línea
+    const linePath = 'M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+    const line = document.createElementNS('http://www.w3.org/2000/svg','path');
+    line.setAttribute('d', linePath);
+    line.setAttribute('stroke', colors[vi]);
+    line.setAttribute('stroke-width','2');
+    line.setAttribute('fill','none');
+    line.setAttribute('stroke-linejoin','round');
+    svg.appendChild(line);
+
+    // Puntos
+    pts.forEach((p,i) => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', p.x.toFixed(1));
+      circle.setAttribute('cy', p.y.toFixed(1));
+      circle.setAttribute('r', i===0||i===pts.length-1 ? '4' : '3');
+      circle.setAttribute('fill', colors[vi]);
+      circle.setAttribute('stroke', '#0d0f14');
+      circle.setAttribute('stroke-width','1.5');
+      svg.appendChild(circle);
+    });
+
+    // Labels eje X (primero, último, medio)
+    [0, Math.floor(pts.length/2), pts.length-1].forEach(i => {
+      if (!pts[i]) return;
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', pts[i].x.toFixed(1));
+      t.setAttribute('y', H-4);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','#5a6278');
+      t.setAttribute('font-size','9');
+      t.textContent = pts[i].lbl;
+      svg.appendChild(t);
+    });
+
+    // Labels eje Y
+    [min, (min+max)/2, max].forEach((v,i) => {
+      const y = pad.t + cH - ((v-min)/(max-min))*cH;
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', pad.l-4);
+      t.setAttribute('y', y+3);
+      t.setAttribute('text-anchor','end');
+      t.setAttribute('fill','#5a6278');
+      t.setAttribute('font-size','9');
+      t.textContent = v.toFixed(1);
+      svg.appendChild(t);
+    });
+
+    // Stats
+    if (statsId) {
+      const first=vals[0], last=vals[vals.length-1], diff=(last-first).toFixed(1);
+      const dc = unit==='kg'?(diff<0?'var(--acc)':diff>0?'var(--acc3)':'var(--muted2)'):'var(--acc)';
+      document.getElementById(statsId).innerHTML=`
+        <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${first} ${unit}</div><div class="stat-lbl">Inicio</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.2rem">${last} ${unit}</div><div class="stat-lbl">Actual</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:${dc};font-size:1.2rem">${diff>0?'+':''}${diff} ${unit}</div><div class="stat-lbl">Cambio</div></div>`;
+    }
   });
-  if (statsId && vals.length>0) {
-    const first=vals[0], last=vals[vals.length-1], diff=(last-first).toFixed(1);
-    const dc = unit==='kg' ? (diff<0?'var(--acc)':diff>0?'var(--acc3)':'var(--muted2)') : 'var(--acc)';
+}
+
+function renderLineChartDoble(svgId, data, statsId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const W = svg.parentElement.clientWidth || 320;
+  const H = 130;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.innerHTML = '';
+
+  if (!data||data.length<2) {
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#5a6278" font-size="12">Sin datos aún</text>`;
+    if (statsId) document.getElementById(statsId).innerHTML=''; return;
+  }
+
+  const pad={t:10,r:16,b:28,l:36};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  const allVals=[...data.map(d=>d.kcal||0),...data.map(d=>d.kcalOut||0)];
+  const min=Math.min(...allVals)*0.95, max=Math.max(...allVals)*1.05;
+
+  [[d=>d.kcal,'var(--acc2)'],[d=>d.kcalOut,'var(--acc3)']].forEach(([fn,color])=>{
+    const pts=data.map((d,i)=>{
+      const v=fn(d)||0;
+      return {x:pad.l+(i/(data.length-1))*cW, y:pad.t+cH-((v-min)/(max-min))*cH, v};
+    });
+    const lp='M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+    const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+    line.setAttribute('d',lp); line.setAttribute('stroke',color);
+    line.setAttribute('stroke-width','2'); line.setAttribute('fill','none');
+    svg.appendChild(line);
+    pts.forEach(p=>{
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p.x.toFixed(1)); c.setAttribute('cy',p.y.toFixed(1));
+      c.setAttribute('r','2.5'); c.setAttribute('fill',color);
+      svg.appendChild(c);
+    });
+  });
+
+  // X labels
+  [0,Math.floor(data.length/2),data.length-1].forEach(i=>{
+    if(!data[i]) return;
+    const x=pad.l+(i/(data.length-1))*cW;
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x.toFixed(1)); t.setAttribute('y',H-4);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278'); t.setAttribute('font-size','9');
+    t.textContent=(data[i].fecha||'').slice(5); svg.appendChild(t);
+  });
+
+  if (statsId) {
+    const avgIn=Math.round(data.reduce((a,d)=>a+(d.kcal||0),0)/data.length);
+    const avgOut=Math.round(data.reduce((a,d)=>a+(d.kcalOut||0),0)/data.length);
+    const avgBal=avgIn-avgOut;
+    const bc=avgBal>200?'var(--acc3)':avgBal<-200?'var(--acc4)':'var(--acc)';
     document.getElementById(statsId).innerHTML=`
-      <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${first} ${unit}</div><div class="stat-lbl">Inicio</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.2rem">${last} ${unit}</div><div class="stat-lbl">Actual</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:${dc};font-size:1.2rem">${diff>0?'+':''}${diff} ${unit}</div><div class="stat-lbl">Cambio</div></div>`;
+      <div class="stat-box"><div class="stat-val c-acc2" style="font-size:1.2rem">${avgIn}</div><div class="stat-lbl">Prom. ingeridas</div></div>
+      <div class="stat-box"><div class="stat-val c-acc3" style="font-size:1.2rem">${avgOut}</div><div class="stat-lbl">Prom. quemadas</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:${bc};font-size:1.2rem">${avgBal>0?'+':''}${avgBal}</div><div class="stat-lbl">Balance prom.</div></div>`;
   }
 }
 
-function renderChartDoble(contId, data, statsId) {
-  const cont = document.getElementById(contId);
-  cont.innerHTML = '';
-  if (!data||data.length===0) { cont.innerHTML='<div style="color:var(--muted);font-size:0.8rem;margin:auto">Sin datos aún</div>'; document.getElementById(statsId).innerHTML=''; return; }
-  const kcals=data.map(d=>d.kcal||0), outs=data.map(d=>d.kcalOut||0);
-  const maxVal=Math.max(...kcals,...outs,1);
-  data.forEach(d => {
-    const kin=d.kcal||0, kout=d.kcalOut||0, lbl=(d.fecha||'').slice(5);
-    const pIn=Math.max(4,(kin/maxVal)*90), pOut=Math.max(4,(kout/maxVal)*90);
-    const bc=document.createElement('div');
-    bc.style.cssText='flex:1;min-width:24px;display:flex;flex-direction:column;align-items:center;gap:2px';
-    bc.innerHTML=`<div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:90px">
-      <div style="flex:1;border-radius:3px 3px 0 0;background:var(--acc2);opacity:0.85;height:${pIn}%;min-height:4px"></div>
-      <div style="flex:1;border-radius:3px 3px 0 0;background:var(--acc3);opacity:0.85;height:${pOut}%;min-height:4px"></div></div>
-      <div style="font-size:0.58rem;color:var(--muted);white-space:nowrap;transform:rotate(-40deg);transform-origin:top left;margin-top:2px">${lbl}</div>`;
-    cont.appendChild(bc);
+function renderGrasaChart() {
+  const medidas = loadStorage('fl_medidas', []);
+  const svg = document.getElementById('chart-grasa-svg');
+  if (!svg) return;
+  const data = medidas.filter(m=>m.grasa>0).slice(-12);
+  const W = svg.parentElement?.clientWidth || 320;
+  const H = 130;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width',W);
+  svg.innerHTML='';
+
+  if (data.length<2) {
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#5a6278" font-size="12">Registra medidas para ver % grasa</text>`;
+    document.getElementById('grasa-stats').innerHTML=''; return;
+  }
+
+  const pad={t:10,r:16,b:28,l:36};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  const vals=data.map(d=>d.grasa);
+  const min=Math.min(...vals)*0.97, max=Math.max(...vals)*1.03;
+  const pts=data.map((d,i)=>({
+    x:pad.l+(i/(data.length-1))*cW,
+    y:pad.t+cH-((d.grasa-min)/(max-min))*cH,
+    v:d.grasa, lbl:d.mes+' '+String(d.anio).slice(2)
+  }));
+
+  const area=`M${pts[0].x},${pad.t+cH} `+pts.map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')+` L${pts[pts.length-1].x},${pad.t+cH} Z`;
+  const ap=document.createElementNS('http://www.w3.org/2000/svg','path');
+  ap.setAttribute('d',area); ap.setAttribute('fill','var(--acc4)'); ap.setAttribute('opacity','0.1');
+  svg.appendChild(ap);
+
+  const lp='M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+  const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+  line.setAttribute('d',lp); line.setAttribute('stroke','var(--acc4)');
+  line.setAttribute('stroke-width','2'); line.setAttribute('fill','none');
+  svg.appendChild(line);
+
+  pts.forEach(p=>{
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',p.x.toFixed(1)); c.setAttribute('cy',p.y.toFixed(1));
+    c.setAttribute('r','4'); c.setAttribute('fill','var(--acc4)');
+    c.setAttribute('stroke','#0d0f14'); c.setAttribute('stroke-width','1.5');
+    svg.appendChild(c);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x.toFixed(1)); t.setAttribute('y',p.y-8);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--acc4)');
+    t.setAttribute('font-size','9'); t.textContent=p.v.toFixed(1)+'%';
+    svg.appendChild(t);
   });
-  const avgIn=Math.round(kcals.reduce((a,b)=>a+b,0)/kcals.length);
-  const avgOut=Math.round(outs.reduce((a,b)=>a+b,0)/outs.length);
-  const avgBal=avgIn-avgOut;
-  const bc2=avgBal>200?'var(--acc3)':avgBal<-200?'var(--acc4)':'var(--acc)';
-  document.getElementById(statsId).innerHTML=`
-    <div class="stat-box"><div class="stat-val c-acc2" style="font-size:1.2rem">${avgIn}</div><div class="stat-lbl">Prom. ingeridas</div></div>
-    <div class="stat-box"><div class="stat-val c-acc3" style="font-size:1.2rem">${avgOut}</div><div class="stat-lbl">Prom. quemadas</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:${bc2};font-size:1.2rem">${avgBal>0?'+':''}${avgBal}</div><div class="stat-lbl">Balance prom.</div></div>`;
+
+  pts.forEach((p,i)=>{
+    if(i===0||i===Math.floor(pts.length/2)||i===pts.length-1){
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',p.x.toFixed(1)); t.setAttribute('y',H-4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278');
+      t.setAttribute('font-size','9'); t.textContent=p.lbl; svg.appendChild(t);
+    }
+  });
+
+  const first=vals[0], last=vals[vals.length-1], diff=(last-first).toFixed(1);
+  const dc=diff<0?'var(--acc)':diff>0?'var(--acc3)':'var(--muted2)';
+  document.getElementById('grasa-stats').innerHTML=`
+    <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${first.toFixed(1)}%</div><div class="stat-lbl">Inicio</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:var(--acc4);font-size:1.2rem">${last.toFixed(1)}%</div><div class="stat-lbl">Actual</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:${dc};font-size:1.2rem">${diff>0?'+':''}${diff}%</div><div class="stat-lbl">Cambio</div></div>`;
 }
 
+// ═══════════════════════════════════════════
+//  MEDIDAS MENSUALES + % GRASA
+// ═══════════════════════════════════════════
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// Inicializar mes actual en selector
+function initMedidaMes() {
+  const now = new Date();
+  const sel = document.getElementById('med-mes');
+  if (sel) sel.selectedIndex = now.getMonth();
+  const anio = document.getElementById('med-anio');
+  if (anio) anio.value = now.getFullYear();
+}
+
+// Foto mensual
+const medFotoInput = document.getElementById('med-foto-input');
+if (medFotoInput) {
+  medFotoInput.addEventListener('change', () => {
+    if (!medFotoInput.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('med-foto-preview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(medFotoInput.files[0]);
+  });
+}
+
+// Calcular % grasa — Fórmula Marina de EE.UU. (hombres)
+// % grasa = 86.010×log10(cintura-cuello) - 70.041×log10(altura) + 36.76
+function calcGrasa(cinturaCm, cuelloCm, alturaCm) {
+  if (!cinturaCm || !cuelloCm || !alturaCm) return null;
+  const diff = cinturaCm - cuelloCm;
+  if (diff <= 0) return null;
+  const grasa = 86.010 * Math.log10(diff) - 70.041 * Math.log10(alturaCm) + 36.76;
+  return Math.max(3, Math.min(50, +grasa.toFixed(1)));
+}
+
+function categGrasa(pct) {
+  if (pct < 6)  return { cat: 'Esencial', color: '#f59e0b' };
+  if (pct < 14) return { cat: 'Atlético', color: 'var(--acc)' };
+  if (pct < 18) return { cat: 'En forma', color: 'var(--acc2)' };
+  if (pct < 25) return { cat: 'Aceptable', color: '#818cf8' };
+  return { cat: 'Exceso de grasa', color: 'var(--acc3)' };
+}
+
+// Actualizar % grasa en tiempo real al cambiar inputs
+['med-cintura','med-cuello'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', actualizarGrasaPreview);
+});
+
+function actualizarGrasaPreview() {
+  const cintura = +document.getElementById('med-cintura')?.value;
+  const cuello  = +document.getElementById('med-cuello')?.value;
+  const grasa   = calcGrasa(cintura, cuello, 174); // altura fija Sebastian
+  const wrap    = document.getElementById('med-grasa-result');
+  if (!wrap) return;
+  if (grasa) {
+    wrap.style.display = 'block';
+    document.getElementById('med-grasa-val').textContent = grasa.toFixed(1) + '%';
+    const {cat, color} = categGrasa(grasa);
+    document.getElementById('med-grasa-cat').textContent = `Categoría: ${cat}`;
+    document.getElementById('med-grasa-val').style.color = color;
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function guardarMedidas() {
+  const mes    = document.getElementById('med-mes')?.value;
+  const anio   = +document.getElementById('med-anio')?.value;
+  const peso   = +document.getElementById('med-peso')?.value || 0;
+  const cuello = +document.getElementById('med-cuello')?.value || 0;
+  const cintura= +document.getElementById('med-cintura')?.value || 0;
+  const cadera = +document.getElementById('med-cadera')?.value || 0;
+  const pecho  = +document.getElementById('med-pecho')?.value || 0;
+  const hombros= +document.getElementById('med-hombros')?.value || 0;
+  const brazo  = +document.getElementById('med-brazo')?.value || 0;
+  const muslo  = +document.getElementById('med-muslo')?.value || 0;
+  const pant   = +document.getElementById('med-pantorrilla')?.value || 0;
+  const grasa  = calcGrasa(cintura, cuello, 174) || 0;
+  const fotoEl = document.getElementById('med-foto-preview');
+  const foto   = fotoEl?.src && fotoEl.src.startsWith('data:') ? fotoEl.src : null;
+
+  const medidas = loadStorage('fl_medidas', []);
+  const idx = medidas.findIndex(m => m.mes===mes && m.anio===anio);
+  const entrada = { mes, anio, peso, cuello, cintura, cadera, pecho, hombros, brazo, muslo, pantorrilla:pant, grasa, foto };
+  if (idx>=0) medidas[idx]=entrada; else medidas.push(entrada);
+  medidas.sort((a,b) => a.anio!==b.anio ? a.anio-b.anio : MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+  saveStorage('fl_medidas', medidas);
+  showToast(`Medidas de ${mes} ${anio} guardadas ✓`);
+  renderMedidasHistorial();
+}
+
+function renderMedidasHistorial() {
+  const medidas = loadStorage('fl_medidas', []);
+  const cont = document.getElementById('medidas-historial');
+  if (!cont) return;
+  if (medidas.length===0) { cont.innerHTML='<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:16px">Sin medidas registradas aún</div>'; return; }
+  cont.innerHTML = [...medidas].reverse().map(m => {
+    const {cat,color} = categGrasa(m.grasa||0);
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong>${m.mes} ${m.anio}</strong>
+        ${m.grasa?`<span style="color:${color};font-weight:700">${m.grasa}% grasa · ${cat}</span>`:''}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:0.78rem;color:var(--muted2)">
+        ${m.peso?`<span>⚖️ ${m.peso}kg</span>`:''}
+        ${m.cintura?`<span>Cintura: ${m.cintura}cm</span>`:''}
+        ${m.pecho?`<span>Pecho: ${m.pecho}cm</span>`:''}
+        ${m.brazo?`<span>Brazo: ${m.brazo}cm</span>`:''}
+        ${m.muslo?`<span>Muslo: ${m.muslo}cm</span>`:''}
+        ${m.hombros?`<span>Hombros: ${m.hombros}cm</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  GEMELO DIGITAL SVG
+// ═══════════════════════════════════════════
+function renderGemelo() {
+  const medidas = loadStorage('fl_medidas', []);
+  const selWrap = document.getElementById('gemelo-mes-selector');
+  if (!selWrap) return;
+
+  if (medidas.length===0) {
+    document.getElementById('gemelo-comparacion').innerHTML =
+      '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px;width:100%">Registra al menos un mes de medidas para ver tu gemelo digital</div>';
+    selWrap.innerHTML=''; return;
+  }
+
+  dibujarSilueta('gemelo-svg-inicio', medidas[0]);
+  dibujarSilueta('gemelo-svg-actual', medidas[medidas.length-1]);
+
+  // Stats comparación
+  const ini = medidas[0], act = medidas[medidas.length-1];
+  const statsEl = document.getElementById('gemelo-stats');
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        ${ini.peso&&act.peso?`<div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.1rem">${(act.peso-ini.peso).toFixed(1)}kg</div><div class="stat-lbl">Cambio peso</div></div>`:''}
+        ${ini.cintura&&act.cintura?`<div class="stat-box"><div class="stat-val" style="color:${act.cintura<ini.cintura?'var(--acc)':'var(--acc3)'};font-size:1.1rem">${(act.cintura-ini.cintura).toFixed(1)}cm</div><div class="stat-lbl">Cambio cintura</div></div>`:''}
+        ${ini.grasa&&act.grasa?`<div class="stat-box"><div class="stat-val" style="color:${act.grasa<ini.grasa?'var(--acc)':'var(--acc3)'};font-size:1.1rem">${(act.grasa-ini.grasa).toFixed(1)}%</div><div class="stat-lbl">Cambio grasa</div></div>`:''}
+      </div>`;
+  }
+
+  // Galería fotos
+  const galeria = document.getElementById('galeria-fotos');
+  if (galeria) {
+    galeria.innerHTML = medidas.filter(m=>m.foto).map(m=>`
+      <div style="text-align:center">
+        <img src="${m.foto}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:4px">${m.mes.slice(0,3)} ${m.anio}</div>
+      </div>`).join('') || '<div style="color:var(--muted);font-size:0.82rem;grid-column:span 3;text-align:center;padding:12px">Sin fotos aún</div>';
+  }
+}
+
+function dibujarSilueta(svgId, m) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  // Proporciones basadas en medidas (defaults si no hay datos)
+  const cintura  = m?.cintura  || 85;
+  const hombros  = m?.hombros  || 115;
+  const pecho    = m?.pecho    || 100;
+  const cadera   = m?.cadera   || 95;
+  const brazo    = m?.brazo    || 35;
+  const muslo    = m?.muslo    || 58;
+  const grasa    = m?.grasa    || 20;
+
+  // Normalizar a escala SVG (viewBox 120×280)
+  const escala = (val, min, max, outMin, outMax) =>
+    outMin + ((val-min)/(max-min)) * (outMax-outMin);
+
+  const anchoHombros  = escala(hombros, 90, 140, 52, 80);
+  const anchoCintura  = escala(cintura,  65, 110, 28, 56);
+  const anchoCadera   = escala(cadera,   80, 120, 42, 68);
+  const anchoPecho    = escala(pecho,    80, 130, 44, 72);
+  const anchoBrazo    = escala(brazo,    25,  50, 8,  16);
+  const anchoMuslo    = escala(muslo,    45,  75, 14, 24);
+  const cx = 60; // centro X
+
+  const col = grasa < 14 ? '#c8f542' : grasa < 20 ? '#5b8cff' : grasa < 26 ? '#818cf8' : '#f59e0b';
+
+  // Cabeza
+  svg.innerHTML += `<ellipse cx="${cx}" cy="22" rx="14" ry="17" fill="${col}" opacity="0.9"/>`;
+  // Cuello
+  svg.innerHTML += `<rect x="${cx-6}" y="37" width="12" height="10" rx="3" fill="${col}" opacity="0.85"/>`;
+  // Torso
+  const torsoPath = `M${cx-anchoHombros/2},47 Q${cx},44 ${cx+anchoHombros/2},47
+    L${cx+anchoCintura/2},110 Q${cx},115 ${cx-anchoCintura/2},110 Z`;
+  svg.innerHTML += `<path d="${torsoPath}" fill="${col}" opacity="0.85"/>`;
+  // Cadera
+  const caderaPath = `M${cx-anchoCintura/2},108 Q${cx},105 ${cx+anchoCintura/2},108
+    L${cx+anchoCadera/2},145 Q${cx},148 ${cx-anchoCadera/2},145 Z`;
+  svg.innerHTML += `<path d="${caderaPath}" fill="${col}" opacity="0.8"/>`;
+  // Brazo izq
+  svg.innerHTML += `<ellipse cx="${cx-anchoHombros/2+2}" cy="80" rx="${anchoBrazo/2}" ry="32" fill="${col}" opacity="0.75" transform="rotate(-5,${cx-anchoHombros/2+2},80)"/>`;
+  // Brazo der
+  svg.innerHTML += `<ellipse cx="${cx+anchoHombros/2-2}" cy="80" rx="${anchoBrazo/2}" ry="32" fill="${col}" opacity="0.75" transform="rotate(5,${cx+anchoHombros/2-2},80)"/>`;
+  // Pierna izq
+  svg.innerHTML += `<ellipse cx="${cx-anchoMuslo}" cy="185" rx="${anchoMuslo/2}" ry="42" fill="${col}" opacity="0.8"/>`;
+  svg.innerHTML += `<ellipse cx="${cx-anchoMuslo+1}" cy="240" rx="${anchoMuslo/2-2}" ry="22" fill="${col}" opacity="0.75"/>`;
+  // Pierna der
+  svg.innerHTML += `<ellipse cx="${cx+anchoMuslo}" cy="185" rx="${anchoMuslo/2}" ry="42" fill="${col}" opacity="0.8"/>`;
+  svg.innerHTML += `<ellipse cx="${cx+anchoMuslo-1}" cy="240" rx="${anchoMuslo/2-2}" ry="22" fill="${col}" opacity="0.75"/>`;
+
+  // Label % grasa
+  if (m?.grasa) {
+    const {cat} = categGrasa(m.grasa);
+    svg.innerHTML += `<text x="${cx}" y="272" text-anchor="middle" fill="${col}" font-size="9" font-weight="bold">${m.grasa}% · ${cat}</text>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PROGRESO EJERCICIOS — LÍNEAS
+// ═══════════════════════════════════════════
 function renderSelectEjercicios() {
   const sel = document.getElementById('sel-ejercicio');
+  if (!sel) return;
   const prev = sel.value;
   sel.innerHTML = '<option value="">Selecciona un ejercicio...</option>';
   const todos = {};
@@ -1371,55 +1885,99 @@ function renderSelectEjercicios() {
 }
 
 function verProgreso() {
-  const ejId = document.getElementById('sel-ejercicio').value;
+  const ejId = document.getElementById('sel-ejercicio')?.value;
   const toggleWrap = document.getElementById('progreso-toggle');
   const grafWrap   = document.getElementById('graf-ejercicio-wrap');
   const cont       = document.getElementById('progreso-ejercicio');
-  if (!ejId) { toggleWrap.style.display='none'; grafWrap.style.display='none'; cont.innerHTML=''; return; }
+  if (!ejId) { if(toggleWrap) toggleWrap.style.display='none'; if(grafWrap) grafWrap.style.display='none'; if(cont) cont.innerHTML=''; return; }
 
   const todas = entrenos.filter(e=>e.ejercicios?.[ejId]).sort((a,b)=>a.fecha.localeCompare(b.fecha));
   const filtradas = periodoActivo>0 ? todas.slice(-periodoActivo) : todas;
 
-  if (filtradas.length===0) { toggleWrap.style.display='none'; grafWrap.style.display='none'; cont.innerHTML='<div style="color:var(--muted);font-size:0.85rem;padding:12px 0">Sin sesiones registradas aún</div>'; return; }
+  if (filtradas.length===0) {
+    if(toggleWrap) toggleWrap.style.display='none';
+    if(grafWrap) grafWrap.style.display='none';
+    if(cont) cont.innerHTML='<div style="color:var(--muted);font-size:0.85rem;padding:12px 0">Sin sesiones registradas aún</div>';
+    return;
+  }
 
-  toggleWrap.style.display='flex';
-  grafWrap.style.display='block';
+  if(toggleWrap) toggleWrap.style.display='flex';
+  if(grafWrap) grafWrap.style.display='block';
 
   const sesData = filtradas.map(e => {
     const sets=e.ejercicios[ejId];
     const pesoMax=Math.max(...sets.map(s=>s.peso||0));
     const volTotal=sets.reduce((a,s)=>a+(s.peso||0)*(s.reps||0),0);
-    return {fecha:e.fecha.slice(5), pesoMax, volTotal};
+    return {fecha:e.fecha, pesoMax, volTotal};
   });
 
-  const barsEl = document.getElementById('graf-ejercicio-bars');
-  barsEl.innerHTML='';
+  // Gráfica de línea para ejercicio
+  const svg = document.getElementById('graf-ejercicio-svg');
+  if (svg) {
+    const W = svg.parentElement?.clientWidth || 320;
+    const H = 130;
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    svg.setAttribute('width',W);
+    svg.innerHTML='';
+    const vals = sesData.map(s=>grafMode==='peso'?s.pesoMax:s.volTotal);
+    const color = grafMode==='peso'?'var(--acc4)':'var(--acc)';
+    const min=Math.min(...vals)*0.95, max=Math.max(...vals)*1.05;
+    const pad={t:10,r:16,b:28,l:36};
+    const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+    const pts=sesData.map((s,i)=>({
+      x:pad.l+(i/(sesData.length-1||1))*cW,
+      y:pad.t+cH-((vals[i]-min)/(max-min||1))*cH,
+      v:vals[i], lbl:s.fecha.slice(5)
+    }));
+
+    // Área
+    const area=`M${pts[0].x},${pad.t+cH} `+pts.map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')+` L${pts[pts.length-1].x},${pad.t+cH} Z`;
+    const ap=document.createElementNS('http://www.w3.org/2000/svg','path');
+    ap.setAttribute('d',area); ap.setAttribute('fill',color); ap.setAttribute('opacity','0.1');
+    svg.appendChild(ap);
+
+    const lp='M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+    const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+    line.setAttribute('d',lp); line.setAttribute('stroke',color);
+    line.setAttribute('stroke-width','2'); line.setAttribute('fill','none');
+    svg.appendChild(line);
+
+    pts.forEach((p,i)=>{
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p.x.toFixed(1)); c.setAttribute('cy',p.y.toFixed(1));
+      c.setAttribute('r', i===0||i===pts.length-1?'4':'3');
+      c.setAttribute('fill',color); c.setAttribute('stroke','#0d0f14'); c.setAttribute('stroke-width','1.5');
+      svg.appendChild(c);
+      // Valor encima del punto
+      if (i===0||i===pts.length-1||pts.length<=6) {
+        const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x',p.x.toFixed(1)); t.setAttribute('y',(p.y-7).toFixed(1));
+        t.setAttribute('text-anchor','middle'); t.setAttribute('fill',color);
+        t.setAttribute('font-size','9'); t.textContent=p.v;
+        svg.appendChild(t);
+      }
+    });
+
+    [0,Math.floor(pts.length/2),pts.length-1].forEach(i=>{
+      if(!pts[i]) return;
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',pts[i].x.toFixed(1)); t.setAttribute('y',H-4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278'); t.setAttribute('font-size','9');
+      t.textContent=pts[i].lbl; svg.appendChild(t);
+    });
+  }
+
+  // Stats
   const vals=sesData.map(s=>grafMode==='peso'?s.pesoMax:s.volTotal);
-  const maxV=Math.max(...vals,1);
-  const color=grafMode==='peso'?'var(--acc4)':'var(--acc)';
-  const unit=grafMode==='peso'?'kg':'vol';
-
-  sesData.forEach((s,i)=>{
-    const v=vals[i], prev=i>0?vals[i-1]:v;
-    const pct=Math.max(4,(v/maxV)*90);
-    const trend=v>prev?'↑':v<prev?'↓':'→';
-    const tc=v>prev?'var(--acc)':v<prev?'var(--acc3)':'var(--muted)';
-    const bc=document.createElement('div');
-    bc.style.cssText='flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:2px';
-    bc.title=`${s.fecha}: ${v} ${unit}`;
-    bc.innerHTML=`<div style="font-size:0.62rem;color:${tc};font-weight:700">${i>0?trend:''}</div>
-      <div style="width:100%;border-radius:3px 3px 0 0;background:${color};opacity:0.85;height:${pct}%;min-height:4px"></div>
-      <div style="font-size:0.58rem;color:var(--muted);white-space:nowrap;transform:rotate(-40deg);transform-origin:top left;margin-top:2px">${s.fecha}</div>`;
-    barsEl.appendChild(bc);
-  });
-
-  const first=vals[0],last=vals[vals.length-1],diff=last-first;
-  const pct2=first>0?((diff/first)*100).toFixed(1):0;
-  document.getElementById('progreso-stats').innerHTML=`
+  const first=vals[0], last=vals[vals.length-1], diff=last-first;
+  const pct=first>0?((diff/first)*100).toFixed(1):0;
+  const statsEl=document.getElementById('progreso-stats');
+  if(statsEl) statsEl.innerHTML=`
     <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${first}</div><div class="stat-lbl">Inicio</div></div>
     <div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.2rem">${last}</div><div class="stat-lbl">Actual</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:${diff>=0?'var(--acc)':'var(--acc3)'};font-size:1.2rem">${diff>=0?'+':''}${diff}</div><div class="stat-lbl">${pct2>=0?'+':''}${pct2}%</div></div>`;
+    <div class="stat-box"><div class="stat-val" style="color:${diff>=0?'var(--acc)':'var(--acc3)'};font-size:1.2rem">${diff>=0?'+':''}${diff}</div><div class="stat-lbl">${pct>=0?'+':''}${pct}%</div></div>`;
 
+  // Tabla últimas sesiones
   const ultimas=filtradas.slice(-5).reverse();
   let html='<div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:8px">Últimas sesiones</div>';
   html+='<table class="tbl"><thead><tr><th>Fecha</th><th>S</th><th>Peso</th><th>Reps</th><th>Vol</th></tr></thead><tbody>';
@@ -1431,11 +1989,12 @@ function verProgreso() {
     });
   });
   html+='</tbody></table>';
-  cont.innerHTML=html;
+  if(cont) cont.innerHTML=html;
 }
 
 function renderHistorialDias() {
   const cont = document.getElementById('historial-dias');
+  if(!cont) return;
   cont.innerHTML='';
   if (dias.length===0) { cont.innerHTML='<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px">Aún no hay días registrados</div>'; return; }
   const filtrados=periodoActivo>0?dias.slice(-periodoActivo):dias;
@@ -1455,6 +2014,7 @@ function renderHistorialDias() {
     cont.appendChild(div);
   });
 }
+
 
 // ═══════════════════════════════════════════
 //  NOTION EXPORT
@@ -1753,6 +2313,7 @@ if (todayData) {
 });
 
 renderEjercicios();
+initMedidaMes();
 
 // Verificar conexión con Google Sheets al cargar
 checkSheetsConnection();
@@ -1827,6 +2388,8 @@ window.setPeriodo      = setPeriodo;
 window.setGrafMode     = setGrafMode;
 window.clearFoodPhoto  = clearFoodPhoto;
 window.analizarFotoComida  = analizarFotoComida;
+window.setProgresoTab      = setProgresoTab;
+window.guardarMedidas      = guardarMedidas;
 window.sincronizarGoogleFit = sincronizarGoogleFit;
 </script>
 </body>
