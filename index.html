@@ -495,11 +495,11 @@ textarea{resize:vertical;min-height:72px}
       <div style="display:flex;gap:12px;justify-content:center;align-items:flex-end" id="gemelo-comparacion">
         <div style="text-align:center;flex:1">
           <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Inicio</div>
-          <svg id="gemelo-svg-inicio" viewBox="0 0 120 280" width="120" height="280"></svg>
+          <svg id="gemelo-svg-inicio" viewBox="0 0 120 230" width="120" height="230"></svg>
         </div>
         <div style="text-align:center;flex:1">
           <div style="font-size:0.7rem;color:var(--acc);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Actual</div>
-          <svg id="gemelo-svg-actual" viewBox="0 0 120 280" width="120" height="280"></svg>
+          <svg id="gemelo-svg-actual" viewBox="0 0 120 230" width="120" height="230"></svg>
         </div>
       </div>
       <div id="gemelo-stats" style="margin-top:16px"></div>
@@ -1190,7 +1190,7 @@ function updateBalance() {
 // ═══════════════════════════════════════════
 //  GOOGLE SHEETS — via Apps Script Web App
 // ═══════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkdet8UrnnJMeMxpK3kFcCK_9FXFQih89jPQQHR-pUIVvNwVcnhfWXqGXXpPYhzsNv/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLUOVRdXOwPGf8ImlYHJtnDuTgBr3qts5bj5vX3MVOkkKZhE9Wby5hIbj_ezBJ-nPo/exec';
 
 async function scriptPost(payload) {
   const r = await fetch(APPS_SCRIPT_URL, {
@@ -1815,56 +1815,122 @@ function dibujarSilueta(svgId, m) {
   if (!svg) return;
   svg.innerHTML = '';
 
-  // Proporciones basadas en medidas (defaults si no hay datos)
   const cintura  = m?.cintura  || 85;
   const hombros  = m?.hombros  || 115;
-  const pecho    = m?.pecho    || 100;
   const cadera   = m?.cadera   || 95;
   const brazo    = m?.brazo    || 35;
   const muslo    = m?.muslo    || 58;
   const grasa    = m?.grasa    || 20;
+  const peso     = m?.peso     || 82;
 
-  // Normalizar a escala SVG (viewBox 120×280)
-  const escala = (val, min, max, outMin, outMax) =>
-    outMin + ((val-min)/(max-min)) * (outMax-outMin);
+  // Color según % grasa
+  const col = grasa < 12 ? '#c8f542' : grasa < 18 ? '#5b8cff' : grasa < 25 ? '#818cf8' : '#f59e0b';
+  const colDark = grasa < 12 ? '#8ab82e' : grasa < 18 ? '#3d6acc' : grasa < 25 ? '#5a4fcc' : '#c47d08';
+  const colSkin = '#d4956a';
+  const cx = 60;
 
-  const anchoHombros  = escala(hombros, 90, 140, 52, 80);
-  const anchoCintura  = escala(cintura,  65, 110, 28, 56);
-  const anchoCadera   = escala(cadera,   80, 120, 42, 68);
-  const anchoPecho    = escala(pecho,    80, 130, 44, 72);
-  const anchoBrazo    = escala(brazo,    25,  50, 8,  16);
-  const anchoMuslo    = escala(muslo,    45,  75, 14, 24);
-  const cx = 60; // centro X
+  // Normalizar medidas a escala SVG
+  const esc = (val, min, max, oMin, oMax) => oMin + Math.min(1, Math.max(0, (val-min)/(max-min))) * (oMax-oMin);
 
-  const col = grasa < 14 ? '#c8f542' : grasa < 20 ? '#5b8cff' : grasa < 26 ? '#818cf8' : '#f59e0b';
+  const wHombros = esc(hombros, 90, 140, 46, 72);
+  const wCintura = esc(cintura,  65, 110, 24, 48);
+  const wCadera  = esc(cadera,   80, 120, 38, 62);
+  const wBrazo   = esc(brazo,    25,  52,  7, 13);
+  const wMuslo   = esc(muslo,    45,  75, 12, 20);
+  const wPant    = wMuslo * 0.72;
 
-  // Cabeza
-  svg.innerHTML += `<ellipse cx="${cx}" cy="22" rx="14" ry="17" fill="${col}" opacity="0.9"/>`;
-  // Cuello
-  svg.innerHTML += `<rect x="${cx-6}" y="37" width="12" height="10" rx="3" fill="${col}" opacity="0.85"/>`;
-  // Torso
-  const torsoPath = `M${cx-anchoHombros/2},47 Q${cx},44 ${cx+anchoHombros/2},47
-    L${cx+anchoCintura/2},110 Q${cx},115 ${cx-anchoCintura/2},110 Z`;
-  svg.innerHTML += `<path d="${torsoPath}" fill="${col}" opacity="0.85"/>`;
-  // Cadera
-  const caderaPath = `M${cx-anchoCintura/2},108 Q${cx},105 ${cx+anchoCintura/2},108
-    L${cx+anchoCadera/2},145 Q${cx},148 ${cx-anchoCadera/2},145 Z`;
-  svg.innerHTML += `<path d="${caderaPath}" fill="${col}" opacity="0.8"/>`;
-  // Brazo izq
-  svg.innerHTML += `<ellipse cx="${cx-anchoHombros/2+2}" cy="80" rx="${anchoBrazo/2}" ry="32" fill="${col}" opacity="0.75" transform="rotate(-5,${cx-anchoHombros/2+2},80)"/>`;
-  // Brazo der
-  svg.innerHTML += `<ellipse cx="${cx+anchoHombros/2-2}" cy="80" rx="${anchoBrazo/2}" ry="32" fill="${col}" opacity="0.75" transform="rotate(5,${cx+anchoHombros/2-2},80)"/>`;
-  // Pierna izq
-  svg.innerHTML += `<ellipse cx="${cx-anchoMuslo}" cy="185" rx="${anchoMuslo/2}" ry="42" fill="${col}" opacity="0.8"/>`;
-  svg.innerHTML += `<ellipse cx="${cx-anchoMuslo+1}" cy="240" rx="${anchoMuslo/2-2}" ry="22" fill="${col}" opacity="0.75"/>`;
-  // Pierna der
-  svg.innerHTML += `<ellipse cx="${cx+anchoMuslo}" cy="185" rx="${anchoMuslo/2}" ry="42" fill="${col}" opacity="0.8"/>`;
-  svg.innerHTML += `<ellipse cx="${cx+anchoMuslo-1}" cy="240" rx="${anchoMuslo/2-2}" ry="22" fill="${col}" opacity="0.75"/>`;
+  // ── CABEZA ──
+  // Cráneo
+  svg.innerHTML += `<ellipse cx="${cx}" cy="20" rx="13" ry="15" fill="${colSkin}"/>`;
+  // Cara — ojos
+  svg.innerHTML += `<ellipse cx="${cx-4}" cy="18" rx="2" ry="2.5" fill="#2a1a0a"/>`;
+  svg.innerHTML += `<ellipse cx="${cx+4}" cy="18" rx="2" ry="2.5" fill="#2a1a0a"/>`;
+  // Nariz
+  svg.innerHTML += `<path d="M${cx-1},21 Q${cx},24 ${cx+1},21" stroke="#b07050" stroke-width="0.8" fill="none"/>`;
+  // Boca
+  svg.innerHTML += `<path d="M${cx-3.5},25 Q${cx},27.5 ${cx+3.5},25" stroke="#a06040" stroke-width="1" fill="none"/>`;
+  // Cabello
+  svg.innerHTML += `<ellipse cx="${cx}" cy="10" rx="13" ry="8" fill="#2a1a0a"/>`;
+  svg.innerHTML += `<rect x="${cx-13}" y="10" width="26" height="6" fill="#2a1a0a"/>`;
 
-  // Label % grasa
+  // ── CUELLO ──
+  svg.innerHTML += `<rect x="${cx-5}" y="33" width="10" height="9" rx="2" fill="${colSkin}"/>`;
+
+  // ── TORSO ──
+  // Forma del torso con curvas bezier
+  const torso = `M${cx-wHombros/2},42
+    C${cx-wHombros/2},55 ${cx-wCintura/2-4},65 ${cx-wCintura/2},82
+    C${cx-wCintura/2},90 ${cx-wCadera/2},96 ${cx-wCadera/2},102
+    L${cx+wCadera/2},102
+    C${cx+wCadera/2},96 ${cx+wCintura/2},90 ${cx+wCintura/2},82
+    C${cx+wCintura/2+4},65 ${cx+wHombros/2},55 ${cx+wHombros/2},42
+    Q${cx},38 ${cx-wHombros/2},42 Z`;
+  svg.innerHTML += `<path d="${torso}" fill="${col}" opacity="0.95"/>`;
+
+  // Línea central del torso
+  svg.innerHTML += `<line x1="${cx}" y1="45" x2="${cx}" y2="98" stroke="${colDark}" stroke-width="0.6" opacity="0.4"/>`;
+
+  // Detalle pectoral
+  svg.innerHTML += `<path d="M${cx-wHombros/2+4},48 Q${cx-4},58 ${cx},55 Q${cx+4},58 ${cx+wHombros/2-4},48" stroke="${colDark}" stroke-width="0.8" fill="none" opacity="0.35"/>`;
+
+  // Ombligo
+  svg.innerHTML += `<circle cx="${cx}" cy="82" r="1.5" fill="${colDark}" opacity="0.4"/>`;
+
+  // ── BRAZO IZQUIERDO ──
+  const bxL = cx - wHombros/2 + 1;
+  svg.innerHTML += `
+    <path d="M${bxL},44 C${bxL-wBrazo},50 ${bxL-wBrazo-2},65 ${bxL-wBrazo+1},80
+             C${bxL-wBrazo+1},86 ${bxL-1},90 ${bxL+2},92
+             C${bxL+4},90 ${bxL+wBrazo+2},86 ${bxL+wBrazo},80
+             C${bxL+wBrazo+2},65 ${bxL+wBrazo},50 ${bxL+2},44 Z"
+          fill="${col}" opacity="0.88"/>`;
+  // Mano izq
+  svg.innerHTML += `<ellipse cx="${bxL}" cy="95" rx="4.5" ry="5.5" fill="${colSkin}"/>`;
+
+  // ── BRAZO DERECHO ──
+  const bxR = cx + wHombros/2 - 1;
+  svg.innerHTML += `
+    <path d="M${bxR},44 C${bxR+wBrazo},50 ${bxR+wBrazo+2},65 ${bxR+wBrazo-1},80
+             C${bxR+wBrazo-1},86 ${bxR+1},90 ${bxR-2},92
+             C${bxR-4},90 ${bxR-wBrazo-2},86 ${bxR-wBrazo},80
+             C${bxR-wBrazo-2},65 ${bxR-wBrazo},50 ${bxR-2},44 Z"
+          fill="${col}" opacity="0.88"/>`;
+  // Mano der
+  svg.innerHTML += `<ellipse cx="${bxR}" cy="95" rx="4.5" ry="5.5" fill="${colSkin}"/>`;
+
+  // ── PIERNA IZQUIERDA ──
+  const pxL = cx - wCadera/4 - 2;
+  svg.innerHTML += `
+    <path d="M${cx-wCadera/2+2},102 C${cx-wCadera/2},110 ${pxL-wMuslo/2},118 ${pxL-wMuslo/2},145
+             C${pxL-wMuslo/2},158 ${pxL-wPant/2},162 ${pxL-wPant/2},182
+             L${pxL+wPant/2},182 C${pxL+wPant/2},162 ${pxL+wMuslo/2},158 ${pxL+wMuslo/2},145
+             C${pxL+wMuslo/2},118 ${cx-2},110 ${cx-2},102 Z"
+          fill="${col}" opacity="0.92"/>`;
+  // Rodilla izq
+  svg.innerHTML += `<ellipse cx="${pxL}" cy="160" rx="${wPant/2+1}" ry="4" fill="${colDark}" opacity="0.2"/>`;
+  // Pie izq
+  svg.innerHTML += `<ellipse cx="${pxL-1}" cy="187" rx="7" ry="4" fill="${colDark}" opacity="0.7"/>`;
+
+  // ── PIERNA DERECHA ──
+  const pxR = cx + wCadera/4 + 2;
+  svg.innerHTML += `
+    <path d="M${cx+2},102 C${cx+2},110 ${pxR-wMuslo/2},118 ${pxR-wMuslo/2},145
+             C${pxR-wMuslo/2},158 ${pxR-wPant/2},162 ${pxR-wPant/2},182
+             L${pxR+wPant/2},182 C${pxR+wPant/2},162 ${pxR+wMuslo/2},158 ${pxR+wMuslo/2},145
+             C${pxR+wMuslo/2},118 ${cx+wCadera/2-2},110 ${cx+wCadera/2-2},102 Z"
+          fill="${col}" opacity="0.92"/>`;
+  // Rodilla der
+  svg.innerHTML += `<ellipse cx="${pxR}" cy="160" rx="${wPant/2+1}" ry="4" fill="${colDark}" opacity="0.2"/>`;
+  // Pie der
+  svg.innerHTML += `<ellipse cx="${pxR+1}" cy="187" rx="7" ry="4" fill="${colDark}" opacity="0.7"/>`;
+
+  // ── INFO LABEL ──
   if (m?.grasa) {
     const {cat} = categGrasa(m.grasa);
-    svg.innerHTML += `<text x="${cx}" y="272" text-anchor="middle" fill="${col}" font-size="9" font-weight="bold">${m.grasa}% · ${cat}</text>`;
+    svg.innerHTML += `
+      <rect x="5" y="196" width="110" height="28" rx="6" fill="#13161e" opacity="0.85"/>
+      <text x="${cx}" y="208" text-anchor="middle" fill="${col}" font-size="9" font-weight="bold">${m.grasa}% grasa · ${cat}</text>
+      <text x="${cx}" y="220" text-anchor="middle" fill="#8892a4" font-size="8">${peso}kg · ${m.mes||''} ${m.anio||''}</text>`;
   }
 }
 
