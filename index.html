@@ -1815,122 +1815,195 @@ function dibujarSilueta(svgId, m) {
   if (!svg) return;
   svg.innerHTML = '';
 
-  const cintura  = m?.cintura  || 85;
-  const hombros  = m?.hombros  || 115;
-  const cadera   = m?.cadera   || 95;
-  const brazo    = m?.brazo    || 35;
-  const muslo    = m?.muslo    || 58;
-  const grasa    = m?.grasa    || 20;
-  const peso     = m?.peso     || 82;
+  const cintura = m?.cintura || 85;
+  const hombros = m?.hombros || 115;
+  const cadera  = m?.cadera  || 95;
+  const brazo   = m?.brazo   || 35;
+  const muslo   = m?.muslo   || 58;
+  const grasa   = m?.grasa   || 20;
+  const peso    = m?.peso    || 82;
 
-  // Color según % grasa
-  const col = grasa < 12 ? '#c8f542' : grasa < 18 ? '#5b8cff' : grasa < 25 ? '#818cf8' : '#f59e0b';
-  const colDark = grasa < 12 ? '#8ab82e' : grasa < 18 ? '#3d6acc' : grasa < 25 ? '#5a4fcc' : '#c47d08';
-  const colSkin = '#d4956a';
+  const col     = grasa < 12 ? '#c8f542' : grasa < 18 ? '#5b8cff' : grasa < 25 ? '#818cf8' : '#f59e0b';
+  const colMid  = grasa < 12 ? '#9dbe32' : grasa < 18 ? '#3a6acc' : grasa < 25 ? '#5a4fcc' : '#c47d08';
+  const colDark = grasa < 12 ? '#6a8020' : grasa < 18 ? '#1e3d80' : grasa < 25 ? '#382e80' : '#7a4d05';
+
+  // Normalizar proporciones
+  const esc = (v,mn,mx,oMn,oMx) => oMn + Math.min(1,Math.max(0,(v-mn)/(mx-mn)))*(oMx-oMn);
+  const wH = esc(hombros,90,140,44,68);
+  const wC = esc(cintura, 65,110,22,44);
+  const wCa= esc(cadera,  80,120,36,58);
+  const wB = esc(brazo,   25, 52, 6,11);
+  const wM = esc(muslo,   45, 75,11,18);
+  const wP = wM * 0.68;
   const cx = 60;
 
-  // Normalizar medidas a escala SVG
-  const esc = (val, min, max, oMin, oMax) => oMin + Math.min(1, Math.max(0, (val-min)/(max-min))) * (oMax-oMin);
+  // ── CABEZA Y CUELLO ──
+  // Cabeza forma realista
+  svg.innerHTML += `
+    <path d="M${cx-10},8 C${cx-14},8 ${cx-15},12 ${cx-15},17
+             C${cx-15},25 ${cx-12},31 ${cx-8},33
+             C${cx-6},34.5 ${cx-4},35 ${cx},35
+             C${cx+4},35 ${cx+6},34.5 ${cx+8},33
+             C${cx+12},31 ${cx+15},25 ${cx+15},17
+             C${cx+15},12 ${cx+14},8 ${cx+10},8
+             C${cx+7},5 ${cx-7},5 ${cx-10},8 Z"
+          fill="${col}"/>`;
+  // Cuello
+  svg.innerHTML += `
+    <path d="M${cx-5},34 L${cx-6},43 L${cx+6},43 L${cx+5},34 Z"
+          fill="${col}"/>`;
+  // Línea mandíbula
+  svg.innerHTML += `<path d="M${cx-8},33 Q${cx},37 ${cx+8},33" stroke="${colMid}" stroke-width="0.5" fill="none" opacity="0.5"/>`;
 
-  const wHombros = esc(hombros, 90, 140, 46, 72);
-  const wCintura = esc(cintura,  65, 110, 24, 48);
-  const wCadera  = esc(cadera,   80, 120, 38, 62);
-  const wBrazo   = esc(brazo,    25,  52,  7, 13);
-  const wMuslo   = esc(muslo,    45,  75, 12, 20);
-  const wPant    = wMuslo * 0.72;
+  // ── TRAPECIO / HOMBROS ──
+  svg.innerHTML += `
+    <path d="M${cx-6},43 C${cx-10},43 ${cx-wH/2-3},44 ${cx-wH/2},47
+             L${cx-wH/2+2},52 C${cx-12},49 ${cx-6},47 ${cx},46
+             C${cx+6},47 ${cx+12},49 ${cx+wH/2-2},52
+             L${cx+wH/2},47 C${cx+wH/2+3},44 ${cx+10},43 ${cx+6},43 Z"
+          fill="${colMid}" opacity="0.7"/>`;
 
-  // ── CABEZA ──
-  // Cráneo
-  svg.innerHTML += `<ellipse cx="${cx}" cy="20" rx="13" ry="15" fill="${colSkin}"/>`;
-  // Cara — ojos
-  svg.innerHTML += `<ellipse cx="${cx-4}" cy="18" rx="2" ry="2.5" fill="#2a1a0a"/>`;
-  svg.innerHTML += `<ellipse cx="${cx+4}" cy="18" rx="2" ry="2.5" fill="#2a1a0a"/>`;
-  // Nariz
-  svg.innerHTML += `<path d="M${cx-1},21 Q${cx},24 ${cx+1},21" stroke="#b07050" stroke-width="0.8" fill="none"/>`;
-  // Boca
-  svg.innerHTML += `<path d="M${cx-3.5},25 Q${cx},27.5 ${cx+3.5},25" stroke="#a06040" stroke-width="1" fill="none"/>`;
-  // Cabello
-  svg.innerHTML += `<ellipse cx="${cx}" cy="10" rx="13" ry="8" fill="#2a1a0a"/>`;
-  svg.innerHTML += `<rect x="${cx-13}" y="10" width="26" height="6" fill="#2a1a0a"/>`;
+  // ── TORSO COMPLETO ──
+  // Silueta exterior del torso
+  svg.innerHTML += `
+    <path d="M${cx-wH/2},47
+             C${cx-wH/2-2},58 ${cx-wH/2-1},68 ${cx-wC/2-2},82
+             C${cx-wC/2-1},90 ${cx-wCa/2},97 ${cx-wCa/2},103
+             L${cx+wCa/2},103
+             C${cx+wCa/2},97 ${cx+wC/2+1},90 ${cx+wC/2+2},82
+             C${cx+wH/2+1},68 ${cx+wH/2+2},58 ${cx+wH/2},47
+             C${cx+wH/2-4},44 ${cx+6},43 ${cx+6},43
+             L${cx-6},43 C${cx-6},43 ${cx-wH/2+4},44 ${cx-wH/2},47 Z"
+          fill="${col}"/>`;
 
-  // ── CUELLO ──
-  svg.innerHTML += `<rect x="${cx-5}" y="33" width="10" height="9" rx="2" fill="${colSkin}"/>`;
+  // Detalle pectorales
+  svg.innerHTML += `
+    <path d="M${cx-wH/2+3},50 C${cx-wH/2+5},60 ${cx-4},63 ${cx-2},60
+             C${cx-1},58 ${cx-1},55 ${cx-2},52
+             C${cx-8},50 ${cx-wH/2+3},50 Z"
+          fill="${colMid}" opacity="0.3"/>
+    <path d="M${cx+wH/2-3},50 C${cx+wH/2-5},60 ${cx+4},63 ${cx+2},60
+             C${cx+1},58 ${cx+1},55 ${cx+2},52
+             C${cx+8},50 ${cx+wH/2-3},50 Z"
+          fill="${colMid}" opacity="0.3"/>`;
 
-  // ── TORSO ──
-  // Forma del torso con curvas bezier
-  const torso = `M${cx-wHombros/2},42
-    C${cx-wHombros/2},55 ${cx-wCintura/2-4},65 ${cx-wCintura/2},82
-    C${cx-wCintura/2},90 ${cx-wCadera/2},96 ${cx-wCadera/2},102
-    L${cx+wCadera/2},102
-    C${cx+wCadera/2},96 ${cx+wCintura/2},90 ${cx+wCintura/2},82
-    C${cx+wCintura/2+4},65 ${cx+wHombros/2},55 ${cx+wHombros/2},42
-    Q${cx},38 ${cx-wHombros/2},42 Z`;
-  svg.innerHTML += `<path d="${torso}" fill="${col}" opacity="0.95"/>`;
+  // Línea esternal (centro pecho)
+  svg.innerHTML += `<line x1="${cx}" y1="44" x2="${cx}" y2="65" stroke="${colDark}" stroke-width="0.7" opacity="0.5"/>`;
 
-  // Línea central del torso
-  svg.innerHTML += `<line x1="${cx}" y1="45" x2="${cx}" y2="98" stroke="${colDark}" stroke-width="0.6" opacity="0.4"/>`;
-
-  // Detalle pectoral
-  svg.innerHTML += `<path d="M${cx-wHombros/2+4},48 Q${cx-4},58 ${cx},55 Q${cx+4},58 ${cx+wHombros/2-4},48" stroke="${colDark}" stroke-width="0.8" fill="none" opacity="0.35"/>`;
-
+  // Detalle abdomen (rectus abdominis)
+  const abY = [66,72,78,84];
+  abY.forEach(y => {
+    svg.innerHTML += `<path d="M${cx-wC/2*0.6},${y} Q${cx-wC/4*0.5},${y+1} ${cx},${y} Q${cx+wC/4*0.5},${y+1} ${cx+wC/2*0.6},${y}"
+      stroke="${colDark}" stroke-width="0.6" fill="none" opacity="0.35"/>`;
+  });
+  // Línea alba (vertical abdomen)
+  svg.innerHTML += `<line x1="${cx}" y1="65" x2="${cx}" y2="90" stroke="${colDark}" stroke-width="0.6" opacity="0.35"/>`;
+  // Líneas oblicuos
+  svg.innerHTML += `
+    <path d="M${cx-wC/2},78 C${cx-wC/2+3},85 ${cx-wCa/2+3},93 ${cx-wCa/2+2},100"
+          stroke="${colDark}" stroke-width="0.6" fill="none" opacity="0.3"/>
+    <path d="M${cx+wC/2},78 C${cx+wC/2-3},85 ${cx+wCa/2-3},93 ${cx+wCa/2-2},100"
+          stroke="${colDark}" stroke-width="0.6" fill="none" opacity="0.3"/>`;
   // Ombligo
-  svg.innerHTML += `<circle cx="${cx}" cy="82" r="1.5" fill="${colDark}" opacity="0.4"/>`;
+  svg.innerHTML += `<ellipse cx="${cx}" cy="84" rx="1.8" ry="1.2" fill="${colDark}" opacity="0.45"/>`;
 
   // ── BRAZO IZQUIERDO ──
-  const bxL = cx - wHombros/2 + 1;
+  const bxL = cx - wH/2;
   svg.innerHTML += `
-    <path d="M${bxL},44 C${bxL-wBrazo},50 ${bxL-wBrazo-2},65 ${bxL-wBrazo+1},80
-             C${bxL-wBrazo+1},86 ${bxL-1},90 ${bxL+2},92
-             C${bxL+4},90 ${bxL+wBrazo+2},86 ${bxL+wBrazo},80
-             C${bxL+wBrazo+2},65 ${bxL+wBrazo},50 ${bxL+2},44 Z"
-          fill="${col}" opacity="0.88"/>`;
+    <path d="M${bxL+1},48 C${bxL-wB},52 ${bxL-wB-1},65 ${bxL-wB+1},80
+             C${bxL-wB+1},87 ${bxL-1},92 ${bxL+1},95
+             C${bxL+3},92 ${bxL+wB+1},87 ${bxL+wB-1},80
+             C${bxL+wB+1},65 ${bxL+wB},52 ${bxL+1},48 Z"
+          fill="${col}" opacity="0.93"/>`;
+  // Bícep izq
+  svg.innerHTML += `
+    <path d="M${bxL-wB*0.1},54 C${bxL-wB*0.9},58 ${bxL-wB*0.95},66 ${bxL-wB*0.5},70
+             C${bxL},67 ${bxL+wB*0.2},60 ${bxL+wB*0.1},54 Z"
+          fill="${colMid}" opacity="0.25"/>`;
+  // Línea codo izq
+  svg.innerHTML += `<path d="M${bxL-wB*0.8},78 Q${bxL},80 ${bxL+wB*0.8},78" stroke="${colDark}" stroke-width="0.6" fill="none" opacity="0.35"/>`;
   // Mano izq
-  svg.innerHTML += `<ellipse cx="${bxL}" cy="95" rx="4.5" ry="5.5" fill="${colSkin}"/>`;
+  svg.innerHTML += `
+    <path d="M${bxL-wB*0.7},94 C${bxL-wB},96 ${bxL-wB*0.5},102 ${bxL},103
+             C${bxL+wB*0.5},102 ${bxL+wB},96 ${bxL+wB*0.7},94 Z"
+          fill="${col}" opacity="0.85"/>`;
 
   // ── BRAZO DERECHO ──
-  const bxR = cx + wHombros/2 - 1;
+  const bxR = cx + wH/2;
   svg.innerHTML += `
-    <path d="M${bxR},44 C${bxR+wBrazo},50 ${bxR+wBrazo+2},65 ${bxR+wBrazo-1},80
-             C${bxR+wBrazo-1},86 ${bxR+1},90 ${bxR-2},92
-             C${bxR-4},90 ${bxR-wBrazo-2},86 ${bxR-wBrazo},80
-             C${bxR-wBrazo-2},65 ${bxR-wBrazo},50 ${bxR-2},44 Z"
-          fill="${col}" opacity="0.88"/>`;
+    <path d="M${bxR-1},48 C${bxR+wB},52 ${bxR+wB+1},65 ${bxR+wB-1},80
+             C${bxR+wB-1},87 ${bxR+1},92 ${bxR-1},95
+             C${bxR-3},92 ${bxR-wB-1},87 ${bxR-wB+1},80
+             C${bxR-wB-1},65 ${bxR-wB},52 ${bxR-1},48 Z"
+          fill="${col}" opacity="0.93"/>`;
+  // Bícep der
+  svg.innerHTML += `
+    <path d="M${bxR+wB*0.1},54 C${bxR+wB*0.9},58 ${bxR+wB*0.95},66 ${bxR+wB*0.5},70
+             C${bxR},67 ${bxR-wB*0.2},60 ${bxR-wB*0.1},54 Z"
+          fill="${colMid}" opacity="0.25"/>`;
+  // Línea codo der
+  svg.innerHTML += `<path d="M${bxR-wB*0.8},78 Q${bxR},80 ${bxR+wB*0.8},78" stroke="${colDark}" stroke-width="0.6" fill="none" opacity="0.35"/>`;
   // Mano der
-  svg.innerHTML += `<ellipse cx="${bxR}" cy="95" rx="4.5" ry="5.5" fill="${colSkin}"/>`;
+  svg.innerHTML += `
+    <path d="M${bxR-wB*0.7},94 C${bxR-wB},96 ${bxR-wB*0.5},102 ${bxR},103
+             C${bxR+wB*0.5},102 ${bxR+wB},96 ${bxR+wB*0.7},94 Z"
+          fill="${col}" opacity="0.85"/>`;
 
   // ── PIERNA IZQUIERDA ──
-  const pxL = cx - wCadera/4 - 2;
+  const pxL = cx - wCa/4 - 1;
   svg.innerHTML += `
-    <path d="M${cx-wCadera/2+2},102 C${cx-wCadera/2},110 ${pxL-wMuslo/2},118 ${pxL-wMuslo/2},145
-             C${pxL-wMuslo/2},158 ${pxL-wPant/2},162 ${pxL-wPant/2},182
-             L${pxL+wPant/2},182 C${pxL+wPant/2},162 ${pxL+wMuslo/2},158 ${pxL+wMuslo/2},145
-             C${pxL+wMuslo/2},118 ${cx-2},110 ${cx-2},102 Z"
-          fill="${col}" opacity="0.92"/>`;
-  // Rodilla izq
-  svg.innerHTML += `<ellipse cx="${pxL}" cy="160" rx="${wPant/2+1}" ry="4" fill="${colDark}" opacity="0.2"/>`;
+    <path d="M${cx-wCa/2+1},103 C${cx-wCa/2},112 ${pxL-wM/2},120 ${pxL-wM/2},148
+             C${pxL-wM/2},157 ${pxL-wP/2},162 ${pxL-wP/2},185
+             L${pxL+wP/2},185 C${pxL+wP/2},162 ${pxL+wM/2},157 ${pxL+wM/2},148
+             C${pxL+wM/2},120 ${cx-2},112 ${cx-2},103 Z"
+          fill="${col}" opacity="0.95"/>`;
+  // Cuádricep izq
+  svg.innerHTML += `
+    <path d="M${pxL-wM/2+1},122 C${pxL-wM/2-1},132 ${pxL-wM/4},140 ${pxL},142
+             C${pxL+wM/4},140 ${pxL+wM/2+1},132 ${pxL+wM/2-1},122
+             C${pxL+wM/4},119 ${pxL-wM/4},119 ${pxL-wM/2+1},122 Z"
+          fill="${colMid}" opacity="0.2"/>`;
+  // Línea rodilla izq
+  svg.innerHTML += `<path d="M${pxL-wP/2-1},157 Q${pxL},160 ${pxL+wP/2+1},157" stroke="${colDark}" stroke-width="0.7" fill="none" opacity="0.4"/>`;
+  // Tibia izq (línea frontal)
+  svg.innerHTML += `<line x1="${pxL}" y1="163" x2="${pxL}" y2="183" stroke="${colDark}" stroke-width="0.6" opacity="0.3"/>`;
   // Pie izq
-  svg.innerHTML += `<ellipse cx="${pxL-1}" cy="187" rx="7" ry="4" fill="${colDark}" opacity="0.7"/>`;
+  svg.innerHTML += `
+    <path d="M${pxL-wP/2},184 C${pxL-wP/2-2},186 ${pxL-wP/2-3},190 ${pxL-1},190
+             C${pxL+wP/2+4},190 ${pxL+wP/2+2},186 ${pxL+wP/2},184 Z"
+          fill="${colMid}" opacity="0.8"/>`;
 
   // ── PIERNA DERECHA ──
-  const pxR = cx + wCadera/4 + 2;
+  const pxR = cx + wCa/4 + 1;
   svg.innerHTML += `
-    <path d="M${cx+2},102 C${cx+2},110 ${pxR-wMuslo/2},118 ${pxR-wMuslo/2},145
-             C${pxR-wMuslo/2},158 ${pxR-wPant/2},162 ${pxR-wPant/2},182
-             L${pxR+wPant/2},182 C${pxR+wPant/2},162 ${pxR+wMuslo/2},158 ${pxR+wMuslo/2},145
-             C${pxR+wMuslo/2},118 ${cx+wCadera/2-2},110 ${cx+wCadera/2-2},102 Z"
-          fill="${col}" opacity="0.92"/>`;
-  // Rodilla der
-  svg.innerHTML += `<ellipse cx="${pxR}" cy="160" rx="${wPant/2+1}" ry="4" fill="${colDark}" opacity="0.2"/>`;
+    <path d="M${cx+2},103 C${cx+2},112 ${pxR-wM/2},120 ${pxR-wM/2},148
+             C${pxR-wM/2},157 ${pxR-wP/2},162 ${pxR-wP/2},185
+             L${pxR+wP/2},185 C${pxR+wP/2},162 ${pxR+wM/2},157 ${pxR+wM/2},148
+             C${pxR+wM/2},120 ${cx+wCa/2-1},112 ${cx+wCa/2-1},103 Z"
+          fill="${col}" opacity="0.95"/>`;
+  // Cuádricep der
+  svg.innerHTML += `
+    <path d="M${pxR-wM/2+1},122 C${pxR-wM/2-1},132 ${pxR-wM/4},140 ${pxR},142
+             C${pxR+wM/4},140 ${pxR+wM/2+1},132 ${pxR+wM/2-1},122
+             C${pxR+wM/4},119 ${pxR-wM/4},119 ${pxR-wM/2+1},122 Z"
+          fill="${colMid}" opacity="0.2"/>`;
+  // Línea rodilla der
+  svg.innerHTML += `<path d="M${pxR-wP/2-1},157 Q${pxR},160 ${pxR+wP/2+1},157" stroke="${colDark}" stroke-width="0.7" fill="none" opacity="0.4"/>`;
+  // Tibia der
+  svg.innerHTML += `<line x1="${pxR}" y1="163" x2="${pxR}" y2="183" stroke="${colDark}" stroke-width="0.6" opacity="0.3"/>`;
   // Pie der
-  svg.innerHTML += `<ellipse cx="${pxR+1}" cy="187" rx="7" ry="4" fill="${colDark}" opacity="0.7"/>`;
+  svg.innerHTML += `
+    <path d="M${pxR-wP/2},184 C${pxR-wP/2-2},186 ${pxR-wP/2-1},190 ${pxR+1},190
+             C${pxR+wP/2+5},190 ${pxR+wP/2+3},186 ${pxR+wP/2},184 Z"
+          fill="${colMid}" opacity="0.8"/>`;
 
-  // ── INFO LABEL ──
+  // ── INFO ──
   if (m?.grasa) {
     const {cat} = categGrasa(m.grasa);
     svg.innerHTML += `
-      <rect x="5" y="196" width="110" height="28" rx="6" fill="#13161e" opacity="0.85"/>
-      <text x="${cx}" y="208" text-anchor="middle" fill="${col}" font-size="9" font-weight="bold">${m.grasa}% grasa · ${cat}</text>
-      <text x="${cx}" y="220" text-anchor="middle" fill="#8892a4" font-size="8">${peso}kg · ${m.mes||''} ${m.anio||''}</text>`;
+      <rect x="4" y="195" width="112" height="28" rx="6" fill="#13161e" opacity="0.9"/>
+      <text x="${cx}" y="207" text-anchor="middle" fill="${col}" font-size="8.5" font-weight="bold">${m.grasa}% grasa · ${cat}</text>
+      <text x="${cx}" y="219" text-anchor="middle" fill="#8892a4" font-size="7.5">${peso}kg · ${m.mes||''} ${m.anio||''}</text>`;
   }
 }
 
