@@ -1817,16 +1817,16 @@ const BODY_SVG_PATH = `M1839 9735 c-177 -48 -302 -189 -329 -371 -10 -67 -4 -159 
 const BODY_REF = { hombros:115, pecho:100, cintura:85, cadera:95, brazo:35, muslo:58, pantorrilla:38 };
 const BODY_CX = 1960; // centro X en coordenadas potrace
 
-// Zonas del cuerpo: [yMin, yMax, medida] en coordenadas potrace (Y invertido, 0=base, 9735=cabeza)
+// Zonas del cuerpo: [yMin, yMax, medida] en coordenadas potrace
 const BODY_ZONES = [
-  [0,    600,  null],           // pies
-  [600,  2500, 'pantorrilla'],  // gemelos
-  [2500, 4500, 'muslo'],        // muslos
-  [4500, 5800, 'cadera'],       // cadera/glúteos
-  [5800, 7200, 'cintura'],      // cintura/abdomen
-  [7200, 8600, 'pecho'],        // pecho
-  [8600, 9400, 'hombros'],      // hombros
-  [9400, 9735, null],           // cabeza
+  [0,    650,  null],           // pies
+  [600,  2550, 'pantorrilla'],  // gemelos
+  [2450, 4550, 'muslo'],        // muslos
+  [4450, 5850, 'cadera'],       // cadera/glúteos
+  [5750, 7250, 'cintura'],      // cintura/abdomen
+  [7150, 8650, 'pecho'],        // pecho
+  [8550, 9450, 'hombros'],      // hombros
+  [9350, 9735, null],           // cabeza
 ];
 
 function dibujarSilueta(svgId, m) {
@@ -1840,50 +1840,105 @@ function dibujarSilueta(svgId, m) {
 
   const ns = 'http://www.w3.org/2000/svg';
 
-  // Actualizar viewBox y atributos del SVG padre
-  svg.setAttribute('viewBox', '200 0 3600 9800');
+  svg.setAttribute('viewBox', '200 0 3600 10100');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
-  // Crear defs con clipPaths por zona
   const defs = document.createElementNS(ns, 'defs');
-  const uid = svgId + '_' + Date.now();
+  const uid = svgId.replace(/[^a-z0-9]/gi,'') + Math.random().toString(36).slice(2,6);
 
+  // Calcular scaleX por zona
+  const zoneScales = BODY_ZONES.map(([yMin, yMax, measure]) =>
+    measure && m?.[measure] ? (m[measure] / BODY_REF[measure]) : 1
+  );
+
+  // Crear clip paths con transición suavizada (overlap de 120px en zona de unión)
+  const OVERLAP = 120;
   BODY_ZONES.forEach((zone, i) => {
     const [yMin, yMax] = zone;
     const clip = document.createElementNS(ns, 'clipPath');
     clip.setAttribute('id', `${uid}_z${i}`);
     const rect = document.createElementNS(ns, 'rect');
+    // Extender ligeramente para evitar gaps
+    const topY    = 9735 - yMax - OVERLAP;
+    const bottomY = 9735 - yMin + OVERLAP;
     rect.setAttribute('x', '-10000');
-    rect.setAttribute('y', String(9735 - yMax - 1));
+    rect.setAttribute('y', String(topY));
     rect.setAttribute('width', '20000');
-    rect.setAttribute('height', String(yMax - yMin + 2));
+    rect.setAttribute('height', String(bottomY - topY));
     clip.appendChild(rect);
     defs.appendChild(clip);
   });
   svg.appendChild(defs);
 
-  // Grupo principal con flip Y (potrace usa Y invertido)
   const mainG = document.createElementNS(ns, 'g');
   mainG.setAttribute('transform', 'scale(1,-1) translate(0,-9735)');
 
-  // Renderizar cada zona con su escala proporcional
+  // Renderizar zonas — la clave es interpolar el scaleX entre zonas adyacentes
+  // usando múltiples capas delgadas en la zona de transición
   BODY_ZONES.forEach((zone, i) => {
     const [yMin, yMax, measure] = zone;
-    const scaleX = measure && m?.[measure] ? (m[measure] / BODY_REF[measure]) : 1;
+    const scaleX = zoneScales[i];
 
+    // Zona principal (sin overlap)
     const g = document.createElementNS(ns, 'g');
-    g.setAttribute('clip-path', `url(#${uid}_z${i})`);
+    const clipRect = document.createElementNS(ns, 'clipPath');
+    const clipId = `${uid}_main_z${i}`;
+    clipRect.setAttribute('id', clipId);
+    const cr = document.createElementNS(ns, 'rect');
+    cr.setAttribute('x', '-10000');
+    cr.setAttribute('y', String(9735 - yMax));
+    cr.setAttribute('width', '20000');
+    cr.setAttribute('height', String(yMax - yMin));
+    clipRect.appendChild(cr);
+    defs.appendChild(clipRect);
 
+    g.setAttribute('clip-path', `url(#${clipId})`);
     const inner = document.createElementNS(ns, 'g');
-    inner.setAttribute('transform', `translate(${BODY_CX},0) scale(${scaleX},1) translate(${-BODY_CX},0)`);
-
+    inner.setAttribute('transform',
+      `translate(${BODY_CX},0) scale(${scaleX},1) translate(${-BODY_CX},0)`);
     const path = document.createElementNS(ns, 'path');
     path.setAttribute('d', BODY_SVG_PATH);
     path.setAttribute('fill', col);
-
     inner.appendChild(path);
     g.appendChild(inner);
     mainG.appendChild(g);
+
+    // Zona de transición inferior (interpolar con zona siguiente)
+    if (i < BODY_ZONES.length - 1) {
+      const nextScale = zoneScales[i + 1];
+      const transH = 200; // altura de transición en coordenadas potrace
+      const steps = 8;
+
+      for (let s = 0; s < steps; s++) {
+        const t = (s + 0.5) / steps;
+        const interpScale = scaleX + (nextScale - scaleX) * t;
+        const tYMin = yMin + (s / steps) * transH;
+        const tYMax = yMin + ((s + 1) / steps) * transH;
+
+        const tClip = document.createElementNS(ns, 'clipPath');
+        const tClipId = `${uid}_t${i}_${s}`;
+        tClip.setAttribute('id', tClipId);
+        const tr = document.createElementNS(ns, 'rect');
+        tr.setAttribute('x', '-10000');
+        tr.setAttribute('y', String(9735 - tYMax));
+        tr.setAttribute('width', '20000');
+        tr.setAttribute('height', String(tYMax - tYMin + 1));
+        tClip.appendChild(tr);
+        defs.appendChild(tClip);
+
+        const tG = document.createElementNS(ns, 'g');
+        tG.setAttribute('clip-path', `url(#${tClipId})`);
+        const tInner = document.createElementNS(ns, 'g');
+        tInner.setAttribute('transform',
+          `translate(${BODY_CX},0) scale(${interpScale},1) translate(${-BODY_CX},0)`);
+        const tPath = document.createElementNS(ns, 'path');
+        tPath.setAttribute('d', BODY_SVG_PATH);
+        tPath.setAttribute('fill', col);
+        tInner.appendChild(tPath);
+        tG.appendChild(tInner);
+        mainG.appendChild(tG);
+      }
+    }
   });
 
   svg.appendChild(mainG);
