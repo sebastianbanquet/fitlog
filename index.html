@@ -1810,24 +1810,95 @@ function renderGemelo() {
   }
 }
 
-// Path SVG real extraído del archivo vectorial de silueta humana anatómica
-const BODY_SVG_PATH = `M1839 9735 c-177 -48 -302 -189 -329 -371 -10 -67 -4 -159 15 -206 5 -13 2 -15 -13 -11 -31 8 -45 -29 -40 -106 2 -51 9 -75 28 -101 14 -19 30 -44 36 -55 6 -11 24 -22 40 -23 34 -4 44 -17 44 -56 0 -16 11 -48 24 -71 31 -52 54 -238 34 -263 -7 -8 -44 -29 -83 -47 -38 -18 -131 -67 -205 -109 -104 -60 -156 -83 -228 -102 -167 -43 -293 -147 -375 -310 -82 -163 -102 -267 -86 -449 l10 -121 -39 -135 c-76 -258 -108 -464 -98 -619 6 -82 4 -103 -14 -155 -53 -152 -74 -288 -90 -600 -5 -110 -17 -281 -26 -380 -18 -200 -18 -201 -108 -313 -68 -85 -68 -85 -101 -222 -18 -74 -41 -141 -67 -189 -21 -41 -37 -80 -34 -88 3 -8 22 -13 48 -13 36 0 48 6 85 42 51 50 50 57 28 -137 -17 -148 -19 -251 -6 -259 17 -11 60 54 80 117 10 34 26 98 36 142 10 44 20 83 24 87 4 5 7 -79 6 -185 0 -188 0 -192 21 -195 29 -4 41 28 69 185 l23 128 1 -117 c1 -64 5 -128 11 -142 20 -55 60 -16 60 60 0 42 12 44 27 4 8 -20 18 -30 32 -30 24 0 23 -12 25 180 1 80 8 186 14 235 15 117 15 353 0 426 -12 58 -12 58 55 256 100 298 187 599 198 683 5 41 13 145 18 230 8 152 9 157 50 248 22 51 53 135 68 187 15 52 29 95 33 95 15 0 32 -80 46 -208 8 -75 19 -173 24 -217 6 -44 10 -156 10 -249 0 -93 5 -196 11 -230 10 -53 9 -72 -7 -131 -13 -51 -19 -108 -19 -210 -1 -77 -7 -162 -13 -190 -7 -27 -36 -183 -66 -345 -106 -574 -117 -843 -52 -1317 38 -272 41 -341 22 -466 -9 -59 -16 -156 -16 -216 0 -82 -5 -122 -20 -166 -51 -147 -71 -376 -71 -785 0 -162 5 -367 10 -455 5 -88 13 -241 16 -340 6 -162 4 -188 -14 -259 -35 -133 -107 -247 -312 -496 -61 -74 -132 -151 -157 -170 -59 -45 -88 -88 -90 -133 -1 -38 28 -74 67 -82 13 -2 29 -9 37 -16 8 -6 26 -9 42 -6 18 4 36 -1 52 -13 45 -35 102 -22 180 41 20 16 58 35 86 44 62 18 122 69 176 148 59 87 106 136 168 175 72 46 137 108 162 156 21 42 21 49 -5 176 -10 46 -11 71 -4 82 7 11 6 43 -3 102 -16 101 -5 244 36 491 41 246 76 371 143 503 62 123 76 191 75 367 -1 107 -8 207 -22 303 l-21 142 20 40 c35 66 49 139 59 295 l10 150 54 120 c89 197 125 320 221 745 25 112 47 206 49 207 2 2 34 -119 71 -269 82 -331 138 -504 215 -666 l59 -123 11 -142 c13 -165 30 -248 65 -317 29 -58 31 -91 9 -237 -12 -80 -15 -148 -11 -263 6 -176 23 -247 87 -365 71 -129 109 -273 166 -630 17 -109 26 -201 25 -257 -2 -90 -2 -156 0 -230 1 -24 0 -84 -2 -134 -4 -89 -3 -93 26 -135 18 -26 66 -67 120 -104 79 -53 99 -73 164 -164 77 -108 129 -152 203 -172 21 -5 59 -28 84 -50 77 -66 111 -73 169 -34 22 16 44 23 56 20 10 -3 29 0 41 6 13 7 32 14 43 16 10 2 29 13 42 25 19 18 22 28 16 62 -8 58 -17 71 -77 115 -54 40 -141 148 -333 416 -55 77 -109 158 -120 180 -45 90 -46 110 -44 700 3 752 -9 941 -78 1185 -22 81 -30 134 -35 235 -3 72 -11 157 -18 190 -19 97 -13 299 17 540 25 203 27 238 22 450 -8 304 -34 485 -137 960 -50 235 -58 284 -58 375 0 72 -6 129 -19 180 -18 69 -19 97 -12 365 8 295 31 594 50 653 12 35 29 43 29 13 0 -30 56 -193 94 -277 34 -73 35 -79 42 -242 3 -92 12 -199 19 -237 17 -92 163 -579 219 -731 l44 -119 -15 -65 c-12 -53 -14 -102 -9 -260 4 -107 11 -213 16 -235 5 -22 10 -109 10 -192 0 -148 1 -153 21 -153 14 0 24 10 32 30 16 42 23 38 31 -19 7 -54 23 -75 46 -61 12 7 16 41 20 147 4 122 6 132 13 83 15 -96 49 -245 58 -256 6 -7 19 -10 30 -7 20 6 20 12 17 194 -2 104 -1 189 2 189 3 0 18 -55 35 -123 32 -133 70 -220 98 -225 15 -3 17 5 17 70 0 40 -7 136 -15 213 -8 77 -15 143 -15 148 0 4 16 -11 36 -33 37 -41 83 -58 123 -45 28 9 26 29 -7 84 -39 63 -48 89 -78 219 -21 92 -32 121 -62 160 -21 26 -57 74 -81 105 -43 56 -43 58 -57 179 -7 68 -20 242 -29 388 -24 402 -38 513 -86 651 -20 56 -23 87 -24 234 -1 191 -21 305 -96 561 l-39 134 11 123 c16 187 -3 283 -89 452 -82 160 -214 265 -384 304 -69 16 -130 42 -271 114 -100 52 -202 101 -226 111 l-44 17 6 118 c4 87 9 126 22 144 9 14 20 47 23 74 6 39 11 49 29 51 14 2 37 26 63 63 32 47 41 71 46 117 6 69 -11 108 -44 105 -18 -2 -21 1 -17 20 15 68 22 169 15 220 -24 172 -163 319 -338 356 -68 14 -184 13 -243 -4z`;
+// ── GEMELO DIGITAL: deformación suave punto a punto ──
+const BODY_CX_DEF = 1986; // centro X del path en coords potrace
+const BODY_YMAX   = 9735;
 
-// Medidas de referencia del body SVG neutral
-const BODY_REF = { hombros:115, pecho:100, cintura:85, cadera:95, brazo:35, muslo:58, pantorrilla:38 };
-const BODY_CX = 1960; // centro X en coordenadas potrace
-
-// Zonas del cuerpo: [yMin, yMax, medida] en coordenadas potrace
-const BODY_ZONES = [
-  [0,    650,  null],           // pies
-  [600,  2550, 'pantorrilla'],  // gemelos
-  [2450, 4550, 'muslo'],        // muslos
-  [4450, 5850, 'cadera'],       // cadera/glúteos
-  [5750, 7250, 'cintura'],      // cintura/abdomen
-  [7150, 8650, 'pecho'],        // pecho
-  [8550, 9450, 'hombros'],      // hombros
-  [9350, 9735, null],           // cabeza
+// Zonas con medida asociada [yMin, yMax, medida_key]
+const BODY_ZONE_DEFS = [
+  [0,    600,  null],
+  [600,  2500, 'pantorrilla'],
+  [2500, 4500, 'muslo'],
+  [4500, 5800, 'cadera'],
+  [5800, 7200, 'cintura'],
+  [7200, 8600, 'pecho'],
+  [8600, 9400, 'hombros'],
+  [9400, 9735, null],
 ];
+
+// Medidas de referencia del body neutro
+const BODY_REF = {hombros:115,pecho:100,cintura:85,cadera:95,muslo:58,pantorrilla:38};
+
+// Calcular scaleX suavizado para una coordenada Y
+function bodyScaleAtY(y, meds) {
+  const T = 0.28; // fracción de transición entre zonas
+  for (let i = 0; i < BODY_ZONE_DEFS.length; i++) {
+    const [yMin, yMax, measure] = BODY_ZONE_DEFS[i];
+    if (y < yMin || y > yMax) continue;
+    const getScale = (m) => m && meds[m] ? meds[m] / BODY_REF[m] : 1.0;
+    const s = getScale(measure);
+    const h = yMax - yMin;
+    const th = h * T;
+    // Mezcla con zona inferior
+    if (y < yMin + th && i > 0) {
+      const ps = getScale(BODY_ZONE_DEFS[i-1][2]);
+      const t = (y - yMin) / th;
+      return ps*(1-t) + s*t;
+    }
+    // Mezcla con zona superior
+    if (y > yMax - th && i < BODY_ZONE_DEFS.length-1) {
+      const ns = getScale(BODY_ZONE_DEFS[i+1][2]);
+      const t = (y - (yMax-th)) / th;
+      return s*(1-t) + ns*t;
+    }
+    return s;
+  }
+  return 1.0;
+}
+
+// Parsear el path potrace a lista de puntos absolutos
+function parsePotrace(pathStr) {
+  const tokens = pathStr.match(/[Mclz]|[-]?\d+\.?\d*/g) || [];
+  const pts = [];
+  let cx=0, cy=0, cmd=null, i=0;
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t==='M') {
+      cx=+tokens[i+1]; cy=+tokens[i+2];
+      pts.push({x:cx,y:cy,cmd:'M'}); i+=3; cmd='M';
+    } else if (t==='c') { cmd='c'; i++; }
+    else if (t==='l') { cmd='l'; i++; }
+    else if (t==='z') { pts.push({x:cx,y:cy,cmd:'z'}); i++; }
+    else if (cmd==='c' && i+5<tokens.length) {
+      const dx1=+tokens[i],dy1=+tokens[i+1];
+      const dx2=+tokens[i+2],dy2=+tokens[i+3];
+      const dx=+tokens[i+4],dy=+tokens[i+5];
+      const cx1=cx+dx1, cy1=cy+dy1, cx2=cx+dx2, cy2=cy+dy2;
+      cx+=dx; cy+=dy;
+      pts.push({x:cx,y:cy,cmd:'c',cx1,cy1,cx2,cy2}); i+=6;
+    } else if (cmd==='l' && i+1<tokens.length) {
+      cx+=+tokens[i]; cy+=+tokens[i+1];
+      pts.push({x:cx,y:cy,cmd:'l'}); i+=2;
+    } else i++;
+  }
+  return pts;
+}
+
+// Generar path SVG absoluto deformado según medidas
+function buildDeformedPath(meds) {
+  const pts = parsePotrace(BODY_SVG_PATH);
+  const scaleX = (x, y) => BODY_CX_DEF + (x - BODY_CX_DEF) * bodyScaleAtY(y, meds);
+  const parts = [];
+  for (const p of pts) {
+    if (p.cmd==='M') parts.push(`M${scaleX(p.x,p.y).toFixed(1)} ${p.y}`);
+    else if (p.cmd==='c') {
+      const nx1=scaleX(p.cx1,p.cy1), nx2=scaleX(p.cx2,p.cy2), nx=scaleX(p.x,p.y);
+      parts.push(`C${nx1.toFixed(1)} ${p.cy1} ${nx2.toFixed(1)} ${p.cy2} ${nx.toFixed(1)} ${p.y}`);
+    } else if (p.cmd==='l') parts.push(`L${scaleX(p.x,p.y).toFixed(1)} ${p.y}`);
+    else if (p.cmd==='z') parts.push('Z');
+  }
+  return parts.join(' ');
+}
 
 function dibujarSilueta(svgId, m) {
   const svg = document.getElementById(svgId);
@@ -1837,126 +1908,42 @@ function dibujarSilueta(svgId, m) {
   const grasa = m?.grasa || 20;
   const peso  = m?.peso  || 82;
   const col   = grasa < 12 ? '#c8f542' : grasa < 18 ? '#5b8cff' : grasa < 25 ? '#818cf8' : '#f59e0b';
-
-  const ns = 'http://www.w3.org/2000/svg';
+  const ns    = 'http://www.w3.org/2000/svg';
 
   svg.setAttribute('viewBox', '200 0 3600 10100');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
-  const defs = document.createElementNS(ns, 'defs');
-  const uid = svgId.replace(/[^a-z0-9]/gi,'') + Math.random().toString(36).slice(2,6);
+  // Medidas del registro (usar referencia si no hay dato)
+  const meds = {
+    hombros:     m?.hombros     || BODY_REF.hombros,
+    pecho:       m?.pecho       || BODY_REF.pecho,
+    cintura:     m?.cintura     || BODY_REF.cintura,
+    cadera:      m?.cadera      || BODY_REF.cadera,
+    muslo:       m?.muslo       || BODY_REF.muslo,
+    pantorrilla: m?.pantorrilla || BODY_REF.pantorrilla,
+  };
 
-  // Calcular scaleX por zona
-  const zoneScales = BODY_ZONES.map(([yMin, yMax, measure]) =>
-    measure && m?.[measure] ? (m[measure] / BODY_REF[measure]) : 1
-  );
+  // Grupo con flip Y (potrace Y invertido respecto a SVG)
+  const g = document.createElementNS(ns, 'g');
+  g.setAttribute('transform', 'scale(1,-1) translate(0,-9735)');
 
-  // Crear clip paths con transición suavizada (overlap de 120px en zona de unión)
-  const OVERLAP = 120;
-  BODY_ZONES.forEach((zone, i) => {
-    const [yMin, yMax] = zone;
-    const clip = document.createElementNS(ns, 'clipPath');
-    clip.setAttribute('id', `${uid}_z${i}`);
-    const rect = document.createElementNS(ns, 'rect');
-    // Extender ligeramente para evitar gaps
-    const topY    = 9735 - yMax - OVERLAP;
-    const bottomY = 9735 - yMin + OVERLAP;
-    rect.setAttribute('x', '-10000');
-    rect.setAttribute('y', String(topY));
-    rect.setAttribute('width', '20000');
-    rect.setAttribute('height', String(bottomY - topY));
-    clip.appendChild(rect);
-    defs.appendChild(clip);
-  });
-  svg.appendChild(defs);
-
-  const mainG = document.createElementNS(ns, 'g');
-  mainG.setAttribute('transform', 'scale(1,-1) translate(0,-9735)');
-
-  // Renderizar zonas — la clave es interpolar el scaleX entre zonas adyacentes
-  // usando múltiples capas delgadas en la zona de transición
-  BODY_ZONES.forEach((zone, i) => {
-    const [yMin, yMax, measure] = zone;
-    const scaleX = zoneScales[i];
-
-    // Zona principal (sin overlap)
-    const g = document.createElementNS(ns, 'g');
-    const clipRect = document.createElementNS(ns, 'clipPath');
-    const clipId = `${uid}_main_z${i}`;
-    clipRect.setAttribute('id', clipId);
-    const cr = document.createElementNS(ns, 'rect');
-    cr.setAttribute('x', '-10000');
-    cr.setAttribute('y', String(9735 - yMax));
-    cr.setAttribute('width', '20000');
-    cr.setAttribute('height', String(yMax - yMin));
-    clipRect.appendChild(cr);
-    defs.appendChild(clipRect);
-
-    g.setAttribute('clip-path', `url(#${clipId})`);
-    const inner = document.createElementNS(ns, 'g');
-    inner.setAttribute('transform',
-      `translate(${BODY_CX},0) scale(${scaleX},1) translate(${-BODY_CX},0)`);
-    const path = document.createElementNS(ns, 'path');
-    path.setAttribute('d', BODY_SVG_PATH);
-    path.setAttribute('fill', col);
-    inner.appendChild(path);
-    g.appendChild(inner);
-    mainG.appendChild(g);
-
-    // Zona de transición inferior (interpolar con zona siguiente)
-    if (i < BODY_ZONES.length - 1) {
-      const nextScale = zoneScales[i + 1];
-      const transH = 200; // altura de transición en coordenadas potrace
-      const steps = 8;
-
-      for (let s = 0; s < steps; s++) {
-        const t = (s + 0.5) / steps;
-        const interpScale = scaleX + (nextScale - scaleX) * t;
-        const tYMin = yMin + (s / steps) * transH;
-        const tYMax = yMin + ((s + 1) / steps) * transH;
-
-        const tClip = document.createElementNS(ns, 'clipPath');
-        const tClipId = `${uid}_t${i}_${s}`;
-        tClip.setAttribute('id', tClipId);
-        const tr = document.createElementNS(ns, 'rect');
-        tr.setAttribute('x', '-10000');
-        tr.setAttribute('y', String(9735 - tYMax));
-        tr.setAttribute('width', '20000');
-        tr.setAttribute('height', String(tYMax - tYMin + 1));
-        tClip.appendChild(tr);
-        defs.appendChild(tClip);
-
-        const tG = document.createElementNS(ns, 'g');
-        tG.setAttribute('clip-path', `url(#${tClipId})`);
-        const tInner = document.createElementNS(ns, 'g');
-        tInner.setAttribute('transform',
-          `translate(${BODY_CX},0) scale(${interpScale},1) translate(${-BODY_CX},0)`);
-        const tPath = document.createElementNS(ns, 'path');
-        tPath.setAttribute('d', BODY_SVG_PATH);
-        tPath.setAttribute('fill', col);
-        tInner.appendChild(tPath);
-        tG.appendChild(tInner);
-        mainG.appendChild(tG);
-      }
-    }
-  });
-
-  svg.appendChild(mainG);
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', buildDeformedPath(meds));
+  path.setAttribute('fill', col);
+  g.appendChild(path);
+  svg.appendChild(g);
 
   // Label info
   if (m?.grasa) {
     const {cat} = categGrasa(m.grasa);
     const ns2 = 'http://www.w3.org/2000/svg';
-    // Reset transform para el label (coordenadas normales)
     const labelG = document.createElementNS(ns2, 'g');
-
     const rect = document.createElementNS(ns2, 'rect');
     rect.setAttribute('x','300'); rect.setAttribute('y','9760');
     rect.setAttribute('width','3400'); rect.setAttribute('height','280');
     rect.setAttribute('rx','80'); rect.setAttribute('fill','#13161e');
     rect.setAttribute('opacity','0.9');
     labelG.appendChild(rect);
-
     const t1 = document.createElementNS(ns2, 'text');
     t1.setAttribute('x','2000'); t1.setAttribute('y','9870');
     t1.setAttribute('text-anchor','middle');
@@ -1966,19 +1953,21 @@ function dibujarSilueta(svgId, m) {
     t1.setAttribute('font-family','sans-serif');
     t1.textContent = `${m.grasa}% grasa · ${cat}`;
     labelG.appendChild(t1);
-
     const t2 = document.createElementNS(ns2, 'text');
     t2.setAttribute('x','2000'); t2.setAttribute('y','9990');
     t2.setAttribute('text-anchor','middle');
     t2.setAttribute('fill','#8892a4');
     t2.setAttribute('font-size','130');
     t2.setAttribute('font-family','sans-serif');
-    t2.textContent = `${peso}kg · ${m.mes||''} ${m.anio||''}`;
+    t2.textContent = `${peso}kg · ${m.mes||''}  ${m.anio||''}`;
     labelG.appendChild(t2);
-
     svg.appendChild(labelG);
   }
 }
+
+const BODY_SVG_PATH = `M1839 9735 c-177 -48 -302 -189 -329 -371 -10 -67 -4 -159 15 -206 5 -13 2 -15 -13 -11 -31 8 -45 -29 -40 -106 2 -51 9 -75 28 -101 14 -19 30 -44 36 -55 6 -11 24 -22 40 -23 34 -4 44 -17 44 -56 0 -16 11 -48 24 -71 31 -52 54 -238 34 -263 -7 -8 -44 -29 -83 -47 -38 -18 -131 -67 -205 -109 -104 -60 -156 -83 -228 -102 -167 -43 -293 -147 -375 -310 -82 -163 -102 -267 -86 -449 l10 -121 -39 -135 c-76 -258 -108 -464 -98 -619 6 -82 4 -103 -14 -155 -53 -152 -74 -288 -90 -600 -5 -110 -17 -281 -26 -380 -18 -200 -18 -201 -108 -313 -68 -85 -68 -85 -101 -222 -18 -74 -41 -141 -67 -189 -21 -41 -37 -80 -34 -88 3 -8 22 -13 48 -13 36 0 48 6 85 42 51 50 50 57 28 -137 -17 -148 -19 -251 -6 -259 17 -11 60 54 80 117 10 34 26 98 36 142 10 44 20 83 24 87 4 5 7 -79 6 -185 0 -188 0 -192 21 -195 29 -4 41 28 69 185 l23 128 1 -117 c1 -64 5 -128 11 -142 20 -55 60 -16 60 60 0 42 12 44 27 4 8 -20 18 -30 32 -30 24 0 23 -12 25 180 1 80 8 186 14 235 15 117 15 353 0 426 -12 58 -12 58 55 256 100 298 187 599 198 683 5 41 13 145 18 230 8 152 9 157 50 248 22 51 53 135 68 187 15 52 29 95 33 95 15 0 32 -80 46 -208 8 -75 19 -173 24 -217 6 -44 10 -156 10 -249 0 -93 5 -196 11 -230 10 -53 9 -72 -7 -131 -13 -51 -19 -108 -19 -210 -1 -77 -7 -162 -13 -190 -7 -27 -36 -183 -66 -345 -106 -574 -117 -843 -52 -1317 38 -272 41 -341 22 -466 -9 -59 -16 -156 -16 -216 0 -82 -5 -122 -20 -166 -51 -147 -71 -376 -71 -785 0 -162 5 -367 10 -455 5 -88 13 -241 16 -340 6 -162 4 -188 -14 -259 -35 -133 -107 -247 -312 -496 -61 -74 -132 -151 -157 -170 -59 -45 -88 -88 -90 -133 -1 -38 28 -74 67 -82 13 -2 29 -9 37 -16 8 -6 26 -9 42 -6 18 4 36 -1 52 -13 45 -35 102 -22 180 41 20 16 58 35 86 44 62 18 122 69 176 148 59 87 106 136 168 175 72 46 137 108 162 156 21 42 21 49 -5 176 -10 46 -11 71 -4 82 7 11 6 43 -3 102 -16 101 -5 244 36 491 41 246 76 371 143 503 62 123 76 191 75 367 -1 107 -8 207 -22 303 l-21 142 20 40 c35 66 49 139 59 295 l10 150 54 120 c89 197 125 320 221 745 25 112 47 206 49 207 2 2 34 -119 71 -269 82 -331 138 -504 215 -666 l59 -123 11 -142 c13 -165 30 -248 65 -317 29 -58 31 -91 9 -237 -12 -80 -15 -148 -11 -263 6 -176 23 -247 87 -365 71 -129 109 -273 166 -630 17 -109 26 -201 25 -257 -2 -90 -2 -156 0 -230 1 -24 0 -84 -2 -134 -4 -89 -3 -93 26 -135 18 -26 66 -67 120 -104 79 -53 99 -73 164 -164 77 -108 129 -152 203 -172 21 -5 59 -28 84 -50 77 -66 111 -73 169 -34 22 16 44 23 56 20 10 -3 29 0 41 6 13 7 32 14 43 16 10 2 29 13 42 25 19 18 22 28 16 62 -8 58 -17 71 -77 115 -54 40 -141 148 -333 416 -55 77 -109 158 -120 180 -45 90 -46 110 -44 700 3 752 -9 941 -78 1185 -22 81 -30 134 -35 235 -3 72 -11 157 -18 190 -19 97 -13 299 17 540 25 203 27 238 22 450 -8 304 -34 485 -137 960 -50 235 -58 284 -58 375 0 72 -6 129 -19 180 -18 69 -19 97 -12 365 8 295 31 594 50 653 12 35 29 43 29 13 0 -30 56 -193 94 -277 34 -73 35 -79 42 -242 3 -92 12 -199 19 -237 17 -92 163 -579 219 -731 l44 -119 -15 -65 c-12 -53 -14 -102 -9 -260 4 -107 11 -213 16 -235 5 -22 10 -109 10 -192 0 -148 1 -153 21 -153 14 0 24 10 32 30 16 42 23 38 31 -19 7 -54 23 -75 46 -61 12 7 16 41 20 147 4 122 6 132 13 83 15 -96 49 -245 58 -256 6 -7 19 -10 30 -7 20 6 20 12 17 194 -2 104 -1 189 2 189 3 0 18 -55 35 -123 32 -133 70 -220 98 -225 15 -3 17 5 17 70 0 40 -7 136 -15 213 -8 77 -15 143 -15 148 0 4 16 -11 36 -33 37 -41 83 -58 123 -45 28 9 26 29 -7 84 -39 63 -48 89 -78 219 -21 92 -32 121 -62 160 -21 26 -57 74 -81 105 -43 56 -43 58 -57 179 -7 68 -20 242 -29 388 -24 402 -38 513 -86 651 -20 56 -23 87 -24 234 -1 191 -21 305 -96 561 l-39 134 11 123 c16 187 -3 283 -89 452 -82 160 -214 265 -384 304 -69 16 -130 42 -271 114 -100 52 -202 101 -226 111 l-44 17 6 118 c4 87 9 126 22 144 9 14 20 47 23 74 6 39 11 49 29 51 14 2 37 26 63 63 32 47 41 71 46 117 6 69 -11 108 -44 105 -18 -2 -21 1 -17 20 15 68 22 169 15 220 -24 172 -163 319 -338 356 -68 14 -184 13 -243 -4z`;
+
+
 
 // ═══════════════════════════════════════════
 //  PROGRESO EJERCICIOS — LÍNEAS
