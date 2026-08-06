@@ -288,6 +288,7 @@ textarea{resize:vertical;min-height:72px}
         <div class="chip" data-cat="carbos" onclick="selCat(this)">🍚 Carbos</div>
         <div class="chip" data-cat="vegetal" onclick="selCat(this)">🥦 Vegetales</div>
         <div class="chip" data-cat="lacteo" onclick="selCat(this)">🥛 Lácteos</div>
+        <div class="chip" data-cat="legumbre" onclick="selCat(this)">🫘 Leguminosas</div>
         <div class="chip" data-cat="grasa" onclick="selCat(this)">🥑 Grasas</div>
         <div class="chip" data-cat="fruta" onclick="selCat(this)">🍌 Frutas</div>
         <div class="chip" data-cat="colombiano" onclick="selCat(this)">🇨🇴 Típico</div>
@@ -681,6 +682,152 @@ const ALIMENTOS_DB = [
   {n:'Obleas con arequipe',             cat:'colombiano', kcal:105, prot:1.5,carb:21,  fat:1.5, porUnidad:true,  pesoUnidad:50,  labelUnidad:'oblea'},
   {n:'Sopa de lentejas (plato)',        cat:'colombiano', kcal:220, prot:14, carb:33,  fat:3,   porUnidad:false},
   {n:'Arroz con leche (taza)',          cat:'colombiano', kcal:195, prot:4,  carb:38,  fat:3.5, porUnidad:false},
+
+  // ─── PROTEÍNAS — TCAC 2018 (por 100g parte comestible) ───
+  // Carnes de res
+  {n:'Carne de res, lomo, crudo',               cat:'proteina', kcal:131, prot:21.4, carb:0,    fat:4.5,  porUnidad:false},
+  {n:'Carne de res, lomo, asado',               cat:'proteina', kcal:175, prot:28.6, carb:0,    fat:6.0,  porUnidad:false},
+  {n:'Carne de res, costilla, cruda',           cat:'proteina', kcal:290, prot:17.2, carb:0,    fat:24.3, porUnidad:false},
+  {n:'Carne de res, molida 80/20, cruda',       cat:'proteina', kcal:254, prot:17.2, carb:0,    fat:20.0, porUnidad:false},
+  {n:'Carne de res, molida 90/10, cruda',       cat:'proteina', kcal:176, prot:20.1, carb:0,    fat:10.5, porUnidad:false},
+  {n:'Carne de res, bistec, crudo',             cat:'proteina', kcal:143, prot:20.6, carb:0,    fat:6.3,  porUnidad:false},
+  {n:'Carne de res, bola negra, cruda',         cat:'proteina', kcal:113, prot:21.8, carb:0,    fat:2.5,  porUnidad:false},
+  {n:'Hígado de res, crudo',                    cat:'proteina', kcal:135, prot:20.4, carb:3.9,  fat:3.6,  porUnidad:false},
+  {n:'Hígado de res, frito',                    cat:'proteina', kcal:217, prot:26.4, carb:5.0,  fat:9.9,  porUnidad:false},
+  // Cerdo
+  {n:'Carne de cerdo, lomo, crudo',             cat:'proteina', kcal:121, prot:21.6, carb:0,    fat:3.3,  porUnidad:false},
+  {n:'Carne de cerdo, costilla, cruda',         cat:'proteina', kcal:261, prot:16.9, carb:0,    fat:21.4, porUnidad:false},
+  {n:'Carne de cerdo, pernil, crudo',           cat:'proteina', kcal:188, prot:19.9, carb:0,    fat:11.5, porUnidad:false},
+  {n:'Tocino de cerdo, crudo',                  cat:'proteina', kcal:518, prot:10.2, carb:0.7,  fat:53.0, porUnidad:false},
+  {n:'Jamón de cerdo cocido',                   cat:'proteina', kcal:145, prot:18.7, carb:1.5,  fat:6.9,  porUnidad:false},
+  {n:'Salchicha de cerdo',                      cat:'proteina', kcal:293, prot:12.5, carb:2.7,  fat:25.9, porUnidad:true, pesoUnidad:50, labelUnidad:'salchicha'},
+  // Pollo y aves
+  {n:'Pechuga de pollo sin piel, cruda',        cat:'proteina', kcal:110, prot:23.1, carb:0,    fat:1.7,  porUnidad:false},
+  {n:'Pechuga de pollo sin piel, asada',        cat:'proteina', kcal:165, prot:31.0, carb:0,    fat:3.6,  porUnidad:false},
+  {n:'Muslo de pollo sin piel, crudo',          cat:'proteina', kcal:119, prot:19.7, carb:0,    fat:4.0,  porUnidad:false},
+  {n:'Muslo de pollo con piel, crudo',          cat:'proteina', kcal:177, prot:17.6, carb:0,    fat:11.6, porUnidad:false},
+  {n:'Ala de pollo con piel, cruda',            cat:'proteina', kcal:222, prot:18.3, carb:0,    fat:15.9, porUnidad:true, pesoUnidad:90, labelUnidad:'ala'},
+  {n:'Pollo entero con piel, asado',            cat:'proteina', kcal:239, prot:27.3, carb:0,    fat:13.6, porUnidad:false},
+  {n:'Pavo, pechuga sin piel, cruda',           cat:'proteina', kcal:104, prot:23.5, carb:0,    fat:0.7,  porUnidad:false},
+  // Pescados
+  {n:'Tilapia, filete, crudo',                  cat:'proteina', kcal:96,  prot:20.1, carb:0,    fat:1.7,  porUnidad:false},
+  {n:'Tilapia, filete, frito',                  cat:'proteina', kcal:196, prot:26.3, carb:5.5,  fat:7.2,  porUnidad:false},
+  {n:'Mojarra, entera, cruda',                  cat:'proteina', kcal:82,  prot:16.5, carb:0,    fat:1.7,  porUnidad:false},
+  {n:'Bagre, filete, crudo',                    cat:'proteina', kcal:95,  prot:18.5, carb:0,    fat:2.4,  porUnidad:false},
+  {n:'Bocachico, entero, crudo',                cat:'proteina', kcal:96,  prot:20.0, carb:0,    fat:1.8,  porUnidad:false},
+  {n:'Salmón del Atlántico, crudo',             cat:'proteina', kcal:208, prot:20.4, carb:0,    fat:13.4, porUnidad:false},
+  {n:'Atún en agua, en lata',                   cat:'proteina', kcal:116, prot:25.5, carb:0,    fat:0.5,  porUnidad:false},
+  {n:'Atún en aceite, en lata',                 cat:'proteina', kcal:198, prot:29.1, carb:0,    fat:8.2,  porUnidad:false},
+  {n:'Sardina en aceite, en lata',              cat:'proteina', kcal:208, prot:24.6, carb:0,    fat:11.5, porUnidad:false},
+  {n:'Camarón, crudo',                          cat:'proteina', kcal:71,  prot:13.6, carb:0.9,  fat:1.0,  porUnidad:false},
+  {n:'Camarón, cocido',                         cat:'proteina', kcal:99,  prot:20.9, carb:0,    fat:1.1,  porUnidad:false},
+  // Huevos
+  {n:'Huevo de gallina entero, crudo',          cat:'proteina', kcal:143, prot:12.6, carb:0.7,  fat:9.5,  porUnidad:true, pesoUnidad:60, labelUnidad:'huevo'},
+  {n:'Huevo de gallina entero, cocido',         cat:'proteina', kcal:155, prot:12.6, carb:1.1,  fat:10.6, porUnidad:true, pesoUnidad:60, labelUnidad:'huevo'},
+  {n:'Huevo de gallina, clara, cruda',          cat:'proteina', kcal:52,  prot:10.9, carb:0.7,  fat:0.2,  porUnidad:false},
+  {n:'Huevo de gallina, yema, cruda',           cat:'proteina', kcal:322, prot:15.9, carb:3.6,  fat:26.5, porUnidad:false},
+  // Proteína vegetal
+  {n:'Tofu firme',                              cat:'proteina', kcal:76,  prot:8.1,  carb:1.9,  fat:4.2,  porUnidad:false},
+  {n:'Proteína de soya texturizada, seca',      cat:'proteina', kcal:326, prot:52.0, carb:31.7, fat:1.0,  porUnidad:false},
+  {n:'Proteína whey, polvo',                    cat:'proteina', kcal:400, prot:80.0, carb:7.5,  fat:5.0,  porUnidad:false},
+
+  // ─── COMIDA TÍPICA COLOMBIANA ADICIONAL — TCAC 2018 ───
+  {n:'Ajiaco bogotano (plato)',                 cat:'colombiano', kcal:145, prot:12.0, carb:18.0, fat:3.0,  porUnidad:false},
+  {n:'Bandeja paisa completa',                  cat:'colombiano', kcal:980, prot:52.0, carb:95.0, fat:38.0, porUnidad:false},
+  {n:'Sancocho trifásico (plato)',              cat:'colombiano', kcal:298, prot:24.0, carb:28.0, fat:9.5,  porUnidad:false},
+  {n:'Sancocho de res (plato)',                 cat:'colombiano', kcal:265, prot:22.0, carb:25.0, fat:8.0,  porUnidad:false},
+  {n:'Frijoles cargamanto guisados (plato)',    cat:'colombiano', kcal:210, prot:13.0, carb:30.0, fat:5.5,  porUnidad:false},
+  {n:'Arroz con pollo (plato)',                 cat:'colombiano', kcal:285, prot:20.0, carb:38.0, fat:5.5,  porUnidad:false},
+  {n:'Arroz con frijoles (plato)',              cat:'colombiano', kcal:260, prot:11.0, carb:45.0, fat:4.0,  porUnidad:false},
+  {n:'Arroz con atún (plato)',                  cat:'colombiano', kcal:255, prot:19.0, carb:35.0, fat:4.5,  porUnidad:false},
+  {n:'Sopa de pasta con pollo (plato)',         cat:'colombiano', kcal:195, prot:14.0, carb:26.0, fat:4.0,  porUnidad:false},
+  {n:'Caldo de costilla (taza)',                cat:'colombiano', kcal:85,  prot:8.0,  carb:6.0,  fat:3.0,  porUnidad:false},
+  {n:'Cocido boyacense (plato)',                cat:'colombiano', kcal:320, prot:18.0, carb:38.0, fat:9.0,  porUnidad:false},
+  {n:'Mondongo (plato)',                        cat:'colombiano', kcal:185, prot:14.0, carb:18.0, fat:5.5,  porUnidad:false},
+  {n:'Tamal tolimense',                         cat:'colombiano', kcal:385, prot:18.0, carb:45.0, fat:14.0, porUnidad:true, pesoUnidad:250, labelUnidad:'tamal'},
+  {n:'Tamal antioqueño',                        cat:'colombiano', kcal:420, prot:20.0, carb:48.0, fat:16.0, porUnidad:true, pesoUnidad:270, labelUnidad:'tamal'},
+  {n:'Arepa de choclo',                         cat:'colombiano', kcal:198, prot:4.5,  carb:35.0, fat:5.5,  porUnidad:true, pesoUnidad:120, labelUnidad:'arepa'},
+  {n:'Arepa de huevo (costeña)',                cat:'colombiano', kcal:285, prot:9.5,  carb:32.0, fat:13.0, porUnidad:true, pesoUnidad:120, labelUnidad:'arepa'},
+  {n:'Arepa boyacense',                         cat:'colombiano', kcal:215, prot:5.0,  carb:38.0, fat:5.0,  porUnidad:true, pesoUnidad:100, labelUnidad:'arepa'},
+  {n:'Pandebono',                               cat:'colombiano', kcal:298, prot:6.5,  carb:42.0, fat:11.5, porUnidad:true, pesoUnidad:60,  labelUnidad:'pandebono'},
+  {n:'Pan de bono con queso',                   cat:'colombiano', kcal:310, prot:7.5,  carb:40.0, fat:13.0, porUnidad:true, pesoUnidad:65,  labelUnidad:'pan'},
+  {n:'Buñuelo',                                 cat:'colombiano', kcal:265, prot:5.5,  carb:28.0, fat:15.0, porUnidad:true, pesoUnidad:60,  labelUnidad:'buñuelo'},
+  {n:'Almojábana',                              cat:'colombiano', kcal:245, prot:7.0,  carb:30.0, fat:11.0, porUnidad:true, pesoUnidad:70,  labelUnidad:'almojábana'},
+  {n:'Natilla (porción)',                       cat:'colombiano', kcal:220, prot:3.5,  carb:42.0, fat:5.0,  porUnidad:false},
+  {n:'Lechona tolimense (porción 200g)',        cat:'colombiano', kcal:420, prot:28.0, carb:22.0, fat:22.0, porUnidad:false},
+  {n:'Fritanga (porción mixta)',                cat:'colombiano', kcal:580, prot:30.0, carb:25.0, fat:38.0, porUnidad:false},
+  {n:'Arepas de maíz pelado (peto)',            cat:'colombiano', kcal:190, prot:4.0,  carb:39.0, fat:2.0,  porUnidad:false},
+  {n:'Chocolate santafereño (taza)',            cat:'colombiano', kcal:142, prot:5.5,  carb:18.0, fat:6.0,  porUnidad:false},
+  {n:'Aguapanela (vaso)',                       cat:'colombiano', kcal:95,  prot:0.2,  carb:24.5, fat:0.0,  porUnidad:false},
+  {n:'Aguapanela con leche (vaso)',             cat:'colombiano', kcal:145, prot:3.5,  carb:27.0, fat:3.0,  porUnidad:false},
+  {n:'Peto (taza)',                             cat:'colombiano', kcal:110, prot:3.5,  carb:22.0, fat:1.5,  porUnidad:false},
+  {n:'Masato (vaso)',                           cat:'colombiano', kcal:125, prot:2.0,  carb:28.0, fat:1.0,  porUnidad:false},
+  {n:'Aborrajado (plátano maduro relleno)',     cat:'colombiano', kcal:290, prot:6.5,  carb:38.0, fat:13.0, porUnidad:true, pesoUnidad:120, labelUnidad:'aborrajado'},
+  {n:'Papas criollas fritas',                   cat:'colombiano', kcal:312, prot:3.5,  carb:38.0, fat:16.0, porUnidad:false},
+  {n:'Papas chorreadas (plato)',                cat:'colombiano', kcal:245, prot:6.5,  carb:32.0, fat:11.0, porUnidad:false},
+  {n:'Huevos pericos con tomate y cebolla',     cat:'colombiano', kcal:185, prot:11.5, carb:4.5,  fat:13.5, porUnidad:false},
+  {n:'Sudado de pollo (plato)',                 cat:'colombiano', kcal:235, prot:22.0, carb:18.0, fat:7.5,  porUnidad:false},
+  {n:'Sudado de res (plato)',                   cat:'colombiano', kcal:255, prot:20.0, carb:20.0, fat:9.0,  porUnidad:false},
+  {n:'Viudo de pescado (plato)',                cat:'colombiano', kcal:220, prot:20.0, carb:22.0, fat:5.5,  porUnidad:false},
+  {n:'Ceviche de camarón (plato)',              cat:'colombiano', kcal:165, prot:16.0, carb:18.0, fat:3.0,  porUnidad:false},
+  {n:'Sobrebarriga en salsa (plato)',           cat:'colombiano', kcal:310, prot:28.0, carb:12.0, fat:16.0, porUnidad:false},
+];
+  {n:'Frijol cargamanto rojo, seco, crudo',     cat:'legumbre', kcal:333, prot:22.4, carb:58.9, fat:1.2,  porUnidad:false},
+  {n:'Frijol cargamanto rojo, cocido, sin sal', cat:'legumbre', kcal:127, prot:8.5,  carb:22.5, fat:0.5,  porUnidad:false},
+  {n:'Frijol cargamanto blanco, seco, crudo',   cat:'legumbre', kcal:335, prot:22.3, carb:59.6, fat:0.9,  porUnidad:false},
+  {n:'Frijol negro, seco, crudo',               cat:'legumbre', kcal:341, prot:21.6, carb:62.4, fat:1.4,  porUnidad:false},
+  {n:'Frijol negro, cocido, sin sal',           cat:'legumbre', kcal:132, prot:8.9,  carb:23.7, fat:0.5,  porUnidad:false},
+  {n:'Frijol radical, seco, crudo',             cat:'legumbre', kcal:336, prot:22.1, carb:60.3, fat:1.1,  porUnidad:false},
+  {n:'Frijol cabecita negra, seco, crudo',      cat:'legumbre', kcal:337, prot:23.5, carb:59.5, fat:1.3,  porUnidad:false},
+  {n:'Frijol bola roja, seco, crudo',           cat:'legumbre', kcal:330, prot:21.8, carb:58.2, fat:1.5,  porUnidad:false},
+  {n:'Frijol bolo rojo, cocido, sin sal',       cat:'legumbre', kcal:128, prot:8.4,  carb:22.7, fat:0.6,  porUnidad:false},
+  {n:'Lenteja, seca, cruda',                    cat:'legumbre', kcal:352, prot:24.6, carb:60.1, fat:1.1,  porUnidad:false},
+  {n:'Lenteja, cocida, sin sal',                cat:'legumbre', kcal:116, prot:9.0,  carb:20.1, fat:0.4,  porUnidad:false},
+  {n:'Garbanzo, seco, crudo',                   cat:'legumbre', kcal:364, prot:19.3, carb:60.7, fat:6.0,  porUnidad:false},
+  {n:'Garbanzo, cocido, sin sal',               cat:'legumbre', kcal:164, prot:8.9,  carb:27.4, fat:2.6,  porUnidad:false},
+  {n:'Arveja verde, fresca, cruda',             cat:'legumbre', kcal:81,  prot:5.4,  carb:14.5, fat:0.4,  porUnidad:false},
+  {n:'Arveja verde, seca, cruda',               cat:'legumbre', kcal:341, prot:24.6, carb:60.4, fat:1.2,  porUnidad:false},
+  {n:'Arveja verde, cocida, sin sal',           cat:'legumbre', kcal:84,  prot:5.4,  carb:15.6, fat:0.2,  porUnidad:false},
+  {n:'Soya, seca, cruda',                       cat:'legumbre', kcal:446, prot:36.5, carb:30.2, fat:19.9, porUnidad:false},
+  {n:'Maní, tostado, sin sal',                  cat:'legumbre', kcal:585, prot:23.7, carb:21.5, fat:49.7, porUnidad:false},
+  {n:'Maní, crudo, con cáscara',                cat:'legumbre', kcal:567, prot:25.8, carb:16.1, fat:49.2, porUnidad:false},
+  {n:'Habichuela, fresca, cruda',               cat:'legumbre', kcal:31,  prot:1.8,  carb:6.9,  fat:0.1,  porUnidad:false},
+  {n:'Habichuela, cocida, sin sal',             cat:'legumbre', kcal:35,  prot:1.9,  carb:7.9,  fat:0.1,  porUnidad:false},
+  {n:'Haba, seca, cruda',                       cat:'legumbre', kcal:341, prot:26.1, carb:58.3, fat:1.5,  porUnidad:false},
+  {n:'Haba, verde, cruda',                      cat:'legumbre', kcal:88,  prot:7.9,  carb:14.3, fat:0.7,  porUnidad:false},
+  {n:'Lenteja pardina, seca, cruda',            cat:'legumbre', kcal:349, prot:25.1, carb:58.9, fat:1.4,  porUnidad:false},
+  {n:'Fríjol mungo (frijol chino), seco',       cat:'legumbre', kcal:347, prot:23.9, carb:62.6, fat:1.2,  porUnidad:false},
+  {n:'Frijol canario, seco, crudo',             cat:'legumbre', kcal:339, prot:22.9, carb:60.1, fat:1.0,  porUnidad:false},
+
+  // ─── LÁCTEOS — TCAC 2018 (por 100g parte comestible) ───
+  {n:'Leche entera de vaca, pasteurizada',      cat:'lacteo',   kcal:61,  prot:3.0,  carb:4.8,  fat:3.3,  porUnidad:false},
+  {n:'Leche semidescremada, pasteurizada',      cat:'lacteo',   kcal:43,  prot:3.3,  carb:4.9,  fat:1.5,  porUnidad:false},
+  {n:'Leche descremada, pasteurizada',          cat:'lacteo',   kcal:33,  prot:3.2,  carb:4.9,  fat:0.1,  porUnidad:false},
+  {n:'Leche entera en polvo',                   cat:'lacteo',   kcal:496, prot:26.0, carb:38.4, fat:26.7, porUnidad:false},
+  {n:'Leche descremada en polvo',               cat:'lacteo',   kcal:357, prot:35.6, carb:52.0, fat:0.8,  porUnidad:false},
+  {n:'Leche condensada azucarada',              cat:'lacteo',   kcal:321, prot:7.9,  carb:54.4, fat:8.7,  porUnidad:false},
+  {n:'Leche evaporada entera',                  cat:'lacteo',   kcal:135, prot:6.8,  carb:10.0, fat:7.6,  porUnidad:false},
+  {n:'Yogur entero natural, sin azúcar',        cat:'lacteo',   kcal:61,  prot:3.5,  carb:4.7,  fat:3.3,  porUnidad:false},
+  {n:'Yogur descremado natural, sin azúcar',    cat:'lacteo',   kcal:40,  prot:4.0,  carb:5.5,  fat:0.2,  porUnidad:false},
+  {n:'Yogur griego entero, sin azúcar',         cat:'lacteo',   kcal:97,  prot:9.0,  carb:3.6,  fat:5.0,  porUnidad:false},
+  {n:'Yogur con frutas, entero',                cat:'lacteo',   kcal:99,  prot:3.2,  carb:17.9, fat:2.0,  porUnidad:false},
+  {n:'Queso campesino fresco',                  cat:'lacteo',   kcal:263, prot:18.0, carb:2.1,  fat:20.5, porUnidad:false},
+  {n:'Queso doble crema',                       cat:'lacteo',   kcal:336, prot:14.2, carb:2.5,  fat:30.0, porUnidad:false},
+  {n:'Queso costeño',                           cat:'lacteo',   kcal:271, prot:19.0, carb:2.8,  fat:20.8, porUnidad:false},
+  {n:'Queso mozzarella',                        cat:'lacteo',   kcal:280, prot:28.1, carb:2.2,  fat:17.1, porUnidad:false},
+  {n:'Queso parmesano',                         cat:'lacteo',   kcal:392, prot:35.8, carb:3.2,  fat:25.8, porUnidad:false},
+  {n:'Queso cheddar',                           cat:'lacteo',   kcal:403, prot:24.9, carb:1.3,  fat:33.1, porUnidad:false},
+  {n:'Queso crema (tipo Philadelphia)',         cat:'lacteo',   kcal:342, prot:6.2,  carb:4.1,  fat:33.2, porUnidad:false},
+  {n:'Queso ricotta (requesón)',                cat:'lacteo',   kcal:174, prot:11.3, carb:3.0,  fat:13.0, porUnidad:false},
+  {n:'Queso cottage descremado',                cat:'lacteo',   kcal:72,  prot:12.4, carb:2.7,  fat:1.0,  porUnidad:false},
+  {n:'Kumis',                                   cat:'lacteo',   kcal:63,  prot:3.1,  carb:5.0,  fat:3.4,  porUnidad:false},
+  {n:'Suero costeño',                           cat:'lacteo',   kcal:145, prot:3.5,  carb:4.2,  fat:12.8, porUnidad:false},
+  {n:'Crema de leche entera',                   cat:'lacteo',   kcal:292, prot:2.1,  carb:3.1,  fat:30.2, porUnidad:false},
+  {n:'Mantequilla sin sal',                     cat:'lacteo',   kcal:717, prot:0.9,  carb:0.1,  fat:81.1, porUnidad:false},
+  {n:'Arequipe (dulce de leche)',               cat:'lacteo',   kcal:309, prot:6.4,  carb:56.5, fat:7.1,  porUnidad:false},
+  {n:'Helado de crema, vainilla',               cat:'lacteo',   kcal:207, prot:3.5,  carb:23.6, fat:11.0, porUnidad:false},
+  {n:'Helado de agua (paleta de fruta)',        cat:'lacteo',   kcal:97,  prot:0.4,  carb:24.5, fat:0.1,  porUnidad:false},
+  {n:'Leche de soya, sin azúcar',              cat:'lacteo',   kcal:33,  prot:2.9,  carb:1.8,  fat:1.5,  porUnidad:false},
 ];
 
 // ═══════════════════════════════════════════
@@ -736,39 +883,60 @@ async function analizarFotoComida() {
   btn.disabled = true;
   document.getElementById('food-loader').style.display = 'flex';
 
+  const OPENROUTER_KEY = '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';
+
+  const prompt = `Eres nutricionista experto en comida colombiana y latinoamericana. Analiza la foto y devuelve SOLO este JSON sin texto extra ni markdown:
+{"alimentos":[{"nombre":"nombre en español","gramos_estimados":100,"kcal":200,"prot_g":10,"carb_g":25,"fat_g":8}],"total_kcal":200,"notas":"observación breve en español"}`;
+
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://sebastianbanquet.github.io/fitlog',
+        'X-Title': 'FitLog'
+      },
       body: JSON.stringify({
-        action: 'analyzeFood',
-        imageBase64: foodB64,
-        mimeType: foodType
+        model: 'google/gemini-flash-1.5-8b',
+        messages: [{
+          role: 'user',
+          content: [
+            {type: 'image_url', image_url: {url: `data:${foodType};base64,${foodB64}`}},
+            {type: 'text', text: prompt}
+          ]
+        }],
+        max_tokens: 600
       })
     });
 
-    if (!resp.ok) throw new Error(`Error ${resp.status}`);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Error ${resp.status}`);
+    }
+
     const data = await resp.json();
-    if (!data.ok) throw new Error(data.error || 'Error en análisis');
+    const generated = data.choices?.[0]?.message?.content || '';
+    const clean = generated.replace(/```json|```/g, '').trim();
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No se pudo leer la respuesta de la IA');
 
-    const clean = data.result.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-
-    (parsed.alimentos||[]).forEach(a => {
+    const parsed = JSON.parse(jsonMatch[0]);
+    (parsed.alimentos || []).forEach(a => {
       comidasHoy.push({
         nombre: a.nombre,
-        kcal: Math.round(a.kcal),
-        prot: Math.round(a.prot_g||0),
-        carb: Math.round(a.carb_g||0),
-        fat:  Math.round(a.fat_g||0),
-        gramos: a.gramos_estimados+'g',
+        kcal: Math.round(a.kcal || 0),
+        prot: Math.round((a.prot_g || 0) * 10) / 10,
+        carb: Math.round((a.carb_g || 0) * 10) / 10,
+        fat:  Math.round((a.fat_g  || 0) * 10) / 10,
+        gramos: (a.gramos_estimados || '') + 'g',
         fuente: '📸 IA'
       });
     });
     persistirComidasHoy();
     actualizarTotalesComida();
     clearFoodPhoto();
-    showToast(`${parsed.alimentos?.length||0} alimentos detectados ✓`);
+    showToast(`${parsed.alimentos?.length || 0} alimentos detectados ✓`);
 
   } catch(err) {
     showToast('Error al analizar: ' + err.message);
