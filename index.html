@@ -292,6 +292,7 @@ textarea{resize:vertical;min-height:72px}
         <div class="chip" data-cat="grasa" onclick="selCat(this)">🥑 Grasas</div>
         <div class="chip" data-cat="fruta" onclick="selCat(this)">🍌 Frutas</div>
         <div class="chip" data-cat="colombiano" onclick="selCat(this)">🇨🇴 Típico</div>
+        <div class="chip" data-cat="dulce" onclick="selCat(this)">🍫 Dulces</div>
       </div>
       <div id="food-list-results" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>
     </div>
@@ -828,6 +829,43 @@ const ALIMENTOS_DB = [
   {n:'Helado de crema, vainilla',               cat:'lacteo',   kcal:207, prot:3.5,  carb:23.6, fat:11.0, porUnidad:false},
   {n:'Helado de agua (paleta de fruta)',        cat:'lacteo',   kcal:97,  prot:0.4,  carb:24.5, fat:0.1,  porUnidad:false},
   {n:'Leche de soya, sin azúcar',              cat:'lacteo',   kcal:33,  prot:2.9,  carb:1.8,  fat:1.5,  porUnidad:false},
+
+  // ─── DULCES Y SNACKS COLOMBIANOS ───
+  {n:'Chocarreros (bolsa 30g)',                 cat:'dulce', kcal:127, prot:1.5, carb:22.0, fat:3.8,  porUnidad:true, pesoUnidad:30,  labelUnidad:'bolsa'},
+  {n:'Chocoramo',                               cat:'dulce', kcal:340, prot:4.0, carb:52.0, fat:13.0, porUnidad:true, pesoUnidad:80,  labelUnidad:'unidad'},
+  {n:'Gansito / Ponqué individual',             cat:'dulce', kcal:298, prot:3.5, carb:48.0, fat:10.5, porUnidad:true, pesoUnidad:70,  labelUnidad:'unidad'},
+  {n:'Ponqué tradicional (trozo)',              cat:'dulce', kcal:385, prot:5.5, carb:58.0, fat:15.0, porUnidad:false},
+  {n:'Chocolatina Jet',                         cat:'dulce', kcal:520, prot:5.0, carb:62.0, fat:27.0, porUnidad:true, pesoUnidad:45,  labelUnidad:'chocolatina'},
+  {n:'Chocolatina Jumbo',                       cat:'dulce', kcal:490, prot:4.5, carb:60.0, fat:25.0, porUnidad:true, pesoUnidad:40,  labelUnidad:'chocolatina'},
+  {n:'Chocolatinas Nucita',                     cat:'dulce', kcal:510, prot:6.5, carb:58.0, fat:28.0, porUnidad:true, pesoUnidad:40,  labelUnidad:'unidad'},
+  {n:'Masmelos (bombones)',                     cat:'dulce', kcal:318, prot:1.8, carb:80.0, fat:0.1,  porUnidad:false},
+  {n:'Bocadillo de guayaba',                    cat:'dulce', kcal:290, prot:0.5, carb:72.0, fat:0.2,  porUnidad:true, pesoUnidad:50,  labelUnidad:'bocadillo'},
+  {n:'Cocadas (coco con azúcar)',               cat:'dulce', kcal:425, prot:3.5, carb:58.0, fat:21.0, porUnidad:true, pesoUnidad:60,  labelUnidad:'cocada'},
+  {n:'Melcocha',                                cat:'dulce', kcal:380, prot:0.5, carb:95.0, fat:0.2,  porUnidad:true, pesoUnidad:30,  labelUnidad:'unidad'},
+  {n:'Goloso / Caramelo suave',                 cat:'dulce', kcal:395, prot:0.3, carb:98.0, fat:0.2,  porUnidad:true, pesoUnidad:10,  labelUnidad:'caramelo'},
+  {n:'Papas margarita (bolsa mediana)',         cat:'dulce', kcal:530, prot:6.5, carb:52.0, fat:33.0, porUnidad:true, pesoUnidad:55,  labelUnidad:'bolsa'},
+  {n:'Papas margarita (bolsa pequeña)',         cat:'dulce', kcal:290, prot:3.5, carb:28.0, fat:18.0, porUnidad:true, pesoUnidad:30,  labelUnidad:'bolsa'},
+  {n:'Cheese Tris (bolsa)',                     cat:'dulce', kcal:465, prot:5.5, carb:55.0, fat:25.0, porUnidad:true, pesoUnidad:43,  labelUnidad:'bolsa'},
+  {n:'Chitos (bolsa)',                          cat:'dulce', kcal:510, prot:6.0, carb:56.0, fat:29.0, porUnidad:true, pesoUnidad:43,  labelUnidad:'bolsa'},
+  {n:'Doritos (bolsa)',                         cat:'dulce', kcal:490, prot:6.5, carb:60.0, fat:25.0, porUnidad:true, pesoUnidad:45,  labelUnidad:'bolsa'},
+  {n:'Tostitos / Maíz tostado (bolsa)',         cat:'dulce', kcal:480, prot:7.0, carb:62.0, fat:22.0, porUnidad:true, pesoUnidad:45,  labelUnidad:'bolsa'},
+  {n:'Galletas Oreo (paquete 3 unidades)',      cat:'dulce', kcal:160, prot:1.5, carb:25.0, fat:7.0,  porUnidad:true, pesoUnidad:36,  labelUnidad:'paquete'},
+  {n:'Galletas Festival (paquete)',             cat:'dulce', kcal:480, prot:5.5, carb:68.0, fat:21.0, porUnidad:true, pesoUnidad:90,  labelUnidad:'paquete'},
+  {n:'Galletas Saltín Noel (paquete)',          cat:'dulce', kcal:415, prot:9.0, carb:64.0, fat:14.0, porUnidad:true, pesoUnidad:90,  labelUnidad:'paquete'},
+  {n:'Helado de crema en cono',                 cat:'dulce', kcal:207, prot:3.5, carb:24.0, fat:11.0, porUnidad:true, pesoUnidad:100, labelUnidad:'cono'},
+  {n:'Paleta de agua sabor fruta',              cat:'dulce', kcal:97,  prot:0.4, carb:24.5, fat:0.1,  porUnidad:true, pesoUnidad:80,  labelUnidad:'paleta'},
+  {n:'Brownie (porción)',                       cat:'dulce', kcal:405, prot:5.0, carb:55.0, fat:19.0, porUnidad:true, pesoUnidad:80,  labelUnidad:'porción'},
+  {n:'Torta de chocolate (trozo)',              cat:'dulce', kcal:352, prot:4.5, carb:50.0, fat:16.0, porUnidad:false},
+  {n:'Arequipe (cucharada)',                    cat:'dulce', kcal:62,  prot:1.3, carb:11.3, fat:1.4,  porUnidad:true, pesoUnidad:20,  labelUnidad:'cuchara'},
+  {n:'Mermelada de fruta (cucharada)',          cat:'dulce', kcal:49,  prot:0.1, carb:13.0, fat:0.0,  porUnidad:true, pesoUnidad:20,  labelUnidad:'cuchara'},
+  {n:'Mora en almíbar (porción)',               cat:'dulce', kcal:68,  prot:0.5, carb:17.5, fat:0.1,  porUnidad:false},
+  {n:'Gelatina con azúcar (vaso)',              cat:'dulce', kcal:80,  prot:1.8, carb:18.5, fat:0.0,  porUnidad:false},
+  {n:'Manjar blanco (porción)',                 cat:'dulce', kcal:295, prot:5.5, carb:52.0, fat:7.5,  porUnidad:false},
+  {n:'Chucula / Chocolate con leche (taza)',    cat:'dulce', kcal:165, prot:6.5, carb:22.0, fat:6.0,  porUnidad:false},
+  {n:'Yogur con toppings y granola',            cat:'dulce', kcal:185, prot:6.5, carb:28.0, fat:5.5,  porUnidad:false},
+  {n:'Wafer de vainilla / chocolate',           cat:'dulce', kcal:495, prot:5.5, carb:65.0, fat:24.0, porUnidad:true, pesoUnidad:40,  labelUnidad:'unidad'},
+  {n:'Cupcake con frosting',                    cat:'dulce', kcal:305, prot:3.0, carb:42.0, fat:14.0, porUnidad:true, pesoUnidad:80,  labelUnidad:'cupcake'},
+  {n:'Donut glaseada',                          cat:'dulce', kcal:452, prot:5.0, carb:51.0, fat:25.0, porUnidad:true, pesoUnidad:85,  labelUnidad:'donut'},
 ];
 
 // ═══════════════════════════════════════════
