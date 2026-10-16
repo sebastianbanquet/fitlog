@@ -551,6 +551,21 @@ textarea{resize:vertical;min-height:72px}
   <div class="sec-title" style="font-family:var(--fd);font-size:1.2rem;margin-bottom:4px">Exportar a Notion</div>
   <div style="font-size:0.82rem;color:var(--muted);margin-bottom:20px">Copia el texto del día y pégalo en tu página de Notion</div>
 
+  <!-- RESTAURAR DESDE SHEETS -->
+  <div class="card" style="margin-bottom:16px;border-color:#2d4a35">
+    <div class="card-title" style="color:var(--acc)">☁️ Restaurar datos desde Google Sheets</div>
+    <div style="font-size:0.82rem;color:var(--muted2);margin-bottom:14px;line-height:1.6">
+      Si perdiste los registros de la app, puedes recuperarlos desde tu Google Sheets donde están guardados en la nube.
+    </div>
+    <div id="restore-status" style="display:none;padding:10px 12px;border-radius:8px;font-size:0.82rem;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="restaurarDesdesheets()" style="flex:1;min-width:140px">⬇️ Restaurar días</button>
+      <button class="btn btn-ghost btn-sm" onclick="restaurarEntrenosDesdeSheets()" style="flex:1;min-width:140px">⬇️ Restaurar entrenos</button>
+      <button class="btn btn-ghost btn-sm" onclick="restaurarMedidasDesdeSheets()" style="flex:1;min-width:140px">⬇️ Restaurar medidas</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:10px">⚠️ Esto reemplaza los datos locales actuales con los de Sheets</div>
+  </div>
+
   <div class="card">
     <div class="card-title">Exportar día</div>
     <div class="field">
@@ -1353,6 +1368,60 @@ let entrenos = loadStorage('fl_entrenos', []);
 let rutinaActiva = 'tren_sup1';
 let actividadHoy = 'ninguna';
 
+// ─── AUTO-SAVE ENTRENO EN CURSO ─────────────────────────
+// Guarda el WIP del entreno cada vez que el usuario escribe
+// en un input de series/reps/peso, para que no se pierda
+// si la app se pone en segundo plano o el SO la mata.
+const WIP_KEY = 'fl_entreno_wip';
+
+function autoSaveWip() {
+  const rutina = RUTINAS[rutinaActiva];
+  if (!rutina) return;
+  const setsData = {};
+  rutina.ejercicios.forEach(ej => {
+    setsData[ej.id] = [];
+    for (let s = 1; s <= ej.series_base; s++) {
+      const pesoEl = document.getElementById(`s${s}_peso_${ej.id}`);
+      const repsEl = document.getElementById(`s${s}_reps_${ej.id}`);
+      setsData[ej.id].push({
+        peso: pesoEl ? (+pesoEl.value || 0) : 0,
+        reps: repsEl ? (+repsEl.value || 0) : 0
+      });
+    }
+  });
+  saveStorage(WIP_KEY, { rutina: rutinaActiva, sets: setsData, ts: Date.now() });
+}
+
+function clearWip() {
+  try { localStorage.removeItem(WIP_KEY); } catch {}
+}
+
+function restoreWip() {
+  const wip = loadStorage(WIP_KEY, null);
+  if (!wip || wip.rutina !== rutinaActiva) return;
+  // Solo restaurar si el WIP es del mismo día (24h)
+  if (Date.now() - wip.ts > 24 * 60 * 60 * 1000) { clearWip(); return; }
+  const rutina = RUTINAS[rutinaActiva];
+  if (!rutina) return;
+  rutina.ejercicios.forEach(ej => {
+    const sets = wip.sets[ej.id] || [];
+    sets.forEach((set, i) => {
+      const s = i + 1;
+      const pesoEl = document.getElementById(`s${s}_peso_${ej.id}`);
+      const repsEl = document.getElementById(`s${s}_reps_${ej.id}`);
+      if (pesoEl && set.peso) pesoEl.value = set.peso;
+      if (repsEl && set.reps) repsEl.value = set.reps;
+    });
+  });
+  // Indicador visual de que se restauró
+  const cont = document.getElementById('ejercicios-container');
+  const aviso = document.createElement('div');
+  aviso.style.cssText = 'background:#1a2d1a;border:1px solid #2d5a2d;border-radius:8px;padding:8px 12px;font-size:0.78rem;color:var(--acc);margin-bottom:12px';
+  aviso.textContent = '↩️ Se recuperó tu sesión anterior (auto-guardado)';
+  cont.prepend(aviso);
+  setTimeout(() => aviso.remove(), 4000);
+}
+
 // ═══════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════
@@ -1453,9 +1522,185 @@ function updateBalance() {
 }
 
 // ═══════════════════════════════════════════
+//  RESTAURAR DESDE GOOGLE SHEETS
+// ═══════════════════════════════════════════
+function setRestoreStatus(msg, ok=null) {
+  const el = document.getElementById('restore-status');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = ok===true ? '#1a3020' : ok===false ? '#2a1515' : 'var(--s2)';
+  el.style.color = ok===true ? 'var(--acc)' : ok===false ? '#f87171' : 'var(--muted2)';
+  el.textContent = msg;
+}
+
+async function restaurarDesdesheets() {
+  setRestoreStatus('⏳ Conectando con Google Sheets...');
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action: 'getDias'})
+    });
+    if (!resp.ok) throw new Error(`Error ${resp.status}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Error al leer Sheets');
+
+    const rows = data.rows || [];
+    if (rows.length === 0) { setRestoreStatus('No se encontraron días en Sheets', false); return; }
+
+    // Convertir filas de Sheets a objetos de días
+    const diasRestaurados = [];
+    for (const row of rows) {
+      if (!row[0] || row[0] === 'Fecha') continue; // skip header
+      const entrada = {
+        fecha:      row[0] || '',
+        fechaLabel: row[1] || '',
+        kcal:       +row[2] || 0,
+        kcalOut:    +row[3] || 0,
+        balance:    +row[4] || 0,
+        prot:       +row[5] || 0,
+        carb:       +row[6] || 0,
+        fat:        +row[7] || 0,
+        pasos:      +row[8] || 0,
+        agua:       +row[9] || 0,
+        peso:       +row[10] || 0,
+        sueno:      +row[11] || 0,
+        actividad:  row[12] || 'ninguna',
+        km:         +row[13] || 0,
+        tmin:       +row[14] || 0,
+        notas:      row[15] || '',
+        comidas:    []
+      };
+      if (entrada.fecha) diasRestaurados.push(entrada);
+    }
+
+    // Guardar en localStorage
+    dias = diasRestaurados;
+    saveStorage('fl_dias', dias);
+    setRestoreStatus(`✓ ${diasRestaurados.length} días restaurados correctamente`, true);
+    showToast(`${diasRestaurados.length} días restaurados ✓`);
+
+  } catch(err) {
+    setRestoreStatus('Error: ' + err.message, false);
+    console.error(err);
+  }
+}
+
+async function restaurarEntrenosDesdeSheets() {
+  setRestoreStatus('⏳ Recuperando entrenos desde Sheets...');
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action: 'getEntrenos'})
+    });
+    if (!resp.ok) throw new Error(`Error ${resp.status}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Error al leer Sheets');
+
+    const rows = data.rows || [];
+    if (rows.length === 0) { setRestoreStatus('No se encontraron entrenos en Sheets', false); return; }
+
+    // Agrupar filas por fecha+rutina
+    const entrenosMap = {};
+    for (const row of rows) {
+      if (!row[0] || row[0] === 'Fecha') continue;
+      const key = row[0] + '_' + row[1];
+      if (!entrenosMap[key]) {
+        entrenosMap[key] = {
+          fecha: row[0],
+          fechaLabel: row[0],
+          rutina: '',
+          rutinaNombre: row[1] || '',
+          kcal: +row[2] || 0,
+          ejercicios: {}
+        };
+        // Map rutina nombre to key
+        const rMap = {'Tren Superior A':'tren_sup1','Tren Superior B':'tren_sup2','Pierna 1 — Cuádriceps':'pierna1','Pierna 2 — Posterior':'pierna2'};
+        entrenosMap[key].rutina = rMap[row[1]] || 'tren_sup1';
+      }
+      // Ejercicio: row[3]=nombre, row[4..11]=S1peso,S1reps,S2peso,S2reps...
+      const ejNombre = row[3];
+      if (ejNombre) {
+        // Find exercise id by name
+        let ejId = null;
+        for (const [rKey, rut] of Object.entries(RUTINAS)) {
+          const ej = rut.ejercicios.find(e => e.nombre === ejNombre);
+          if (ej) { ejId = ej.id; break; }
+        }
+        if (ejId) {
+          const sets = [];
+          for (let s = 0; s < 4; s++) {
+            const peso = +row[4 + s*2] || 0;
+            const reps = +row[5 + s*2] || 0;
+            if (peso > 0 || reps > 0) sets.push({peso, reps});
+          }
+          entrenosMap[key].ejercicios[ejId] = sets;
+        }
+      }
+    }
+
+    entrenos = Object.values(entrenosMap);
+    saveStorage('fl_entrenos', entrenos);
+    setRestoreStatus(`✓ ${entrenos.length} sesiones de entreno restauradas`, true);
+    showToast(`${entrenos.length} entrenos restaurados ✓`);
+
+  } catch(err) {
+    setRestoreStatus('Error: ' + err.message, false);
+    console.error(err);
+  }
+}
+
+async function restaurarMedidasDesdeSheets() {
+  setRestoreStatus('⏳ Recuperando medidas desde Sheets...');
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action: 'getMedidas'})
+    });
+    if (!resp.ok) throw new Error(`Error ${resp.status}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Error al leer Sheets');
+
+    const rows = data.rows || [];
+    if (rows.length === 0) { setRestoreStatus('No se encontraron medidas en Sheets', false); return; }
+
+    const medidasRestauradas = [];
+    for (const row of rows) {
+      if (!row[0] || row[0] === 'Mes') continue;
+      medidasRestauradas.push({
+        mes:          row[0] || '',
+        anio:         +row[1] || 2025,
+        peso:         +row[2] || 0,
+        cuello:       +row[3] || 0,
+        cintura:      +row[4] || 0,
+        cadera:       +row[5] || 0,
+        pecho:        +row[6] || 0,
+        hombros:      +row[7] || 0,
+        brazo:        +row[8] || 0,
+        muslo:        +row[9] || 0,
+        pantorrilla:  +row[10] || 0,
+        grasa:        +row[11] || 0,
+        foto:         null
+      });
+    }
+
+    medidasRestauradas.sort((a,b) => a.anio!==b.anio ? a.anio-b.anio : MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+    saveStorage('fl_medidas', medidasRestauradas);
+    setRestoreStatus(`✓ ${medidasRestauradas.length} registros de medidas restaurados`, true);
+    showToast(`${medidasRestauradas.length} medidas restauradas ✓`);
+  } catch(err) {
+    setRestoreStatus('Error: ' + err.message, false);
+  }
+}
+
+window.restaurarMedidasDesdeSheets = restaurarMedidasDesdeSheets;
+
+// ═══════════════════════════════════════════
 //  GOOGLE SHEETS — via Apps Script Web App
 // ═══════════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxc-nX52KB3XgW4uVFcgLqqyBUUDesbMSkUQPzChzvf8V9uNgRjB05-pvbjgt54bq-_/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwd52agl1nMEs8ArCjN0j5BFwViDYScpskkx_D_D5Eu_5WQHIB0-em8bBFwU1YPAL_/exec';
 
 async function scriptPost(payload) {
   const r = await fetch(APPS_SCRIPT_URL, {
@@ -1582,8 +1827,8 @@ function renderEjercicios() {
       const prevTxt = prevSet.peso ? `${prevSet.peso}kg×${prevSet.reps}` : `${ej.peso_base_kg}kg×${ej.reps_base}`;
       setsHtml += `
         <div class="set-num">S${s}</div>
-        <input class="set-inp" type="number" step="0.5" placeholder="${ej.peso_base_kg}" id="s${s}_peso_${ej.id}" min="0">
-        <input class="set-inp" type="number" placeholder="${ej.reps_base}" id="s${s}_reps_${ej.id}" min="0">
+        <input class="set-inp" type="number" step="0.5" placeholder="${ej.peso_base_kg}" id="s${s}_peso_${ej.id}" min="0" oninput="autoSaveWip()">
+        <input class="set-inp" type="number" placeholder="${ej.reps_base}" id="s${s}_reps_${ej.id}" min="0" oninput="autoSaveWip()">
         <div style="font-size:0.72rem;color:var(--muted);text-align:center;padding:6px 0">${prevTxt}</div>`;
     }
     setsHtml += '</div>';
@@ -1593,6 +1838,9 @@ function renderEjercicios() {
       ${setsHtml}`;
     cont.appendChild(div);
   });
+
+  // Restaurar datos si hay un WIP guardado para esta rutina
+  restoreWip();
 }
 
 async function guardarEntreno() {
@@ -1629,9 +1877,11 @@ async function guardarEntreno() {
   try {
     await initSheets();
     await syncEntrenoToSheets(entrada);
+    clearWip(); // Limpiar auto-save al guardar exitosamente
     showToast(`Sesión guardada en Sheets · ${kcal} kcal ✓`);
   } catch(err) {
     console.error('Sheets entreno error:', err);
+    clearWip(); // También limpiar aunque falle Sheets (ya está en localStorage)
     showToast(`Guardado local · ${kcal} kcal ✓`);
   } finally {
     if (btn) { btn.disabled=false; btn.textContent='💾 Guardar sesión'; }
@@ -1985,7 +2235,7 @@ function actualizarGrasaPreview() {
   }
 }
 
-function guardarMedidas() {
+async function guardarMedidas() {
   const mes    = document.getElementById('med-mes')?.value;
   const anio   = +document.getElementById('med-anio')?.value;
   const peso   = +document.getElementById('med-peso')?.value || 0;
@@ -2007,7 +2257,17 @@ function guardarMedidas() {
   if (idx>=0) medidas[idx]=entrada; else medidas.push(entrada);
   medidas.sort((a,b) => a.anio!==b.anio ? a.anio-b.anio : MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
   saveStorage('fl_medidas', medidas);
-  showToast(`Medidas de ${mes} ${anio} guardadas ✓`);
+
+  // Sincronizar con Google Sheets
+  try {
+    await scriptPost({
+      sheet: 'Medidas',
+      row: [mes, anio, peso, cuello, cintura, cadera, pecho, hombros, brazo, muslo, pant, grasa, foto ? '[foto guardada]' : '']
+    });
+    showToast(`Medidas de ${mes} ${anio} guardadas ✓`);
+  } catch(err) {
+    showToast(`Medidas guardadas localmente ✓`);
+  }
   renderMedidasHistorial();
 }
 
