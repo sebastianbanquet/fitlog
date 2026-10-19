@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitlog-v26';
+const CACHE_NAME = 'fitlog-v27';
 const STATIC_ASSETS = [
   '/fitlog/',
   '/fitlog/index.html',

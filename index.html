@@ -376,19 +376,97 @@ textarea{resize:vertical;min-height:72px}
     <div style="font-size:0.8rem;color:var(--muted)" id="entreno-fecha"></div>
   </div>
 
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-title">Rutina activa</div>
-    <div class="chips" id="chips-rutina">
-      <div class="chip active" data-val="tren_sup1" onclick="selectRutina(this)">Tren Superior A</div>
-      <div class="chip" data-val="tren_sup2" onclick="selectRutina(this)">Tren Superior B</div>
-      <div class="chip" data-val="pierna1" onclick="selectRutina(this)">Pierna 1</div>
-      <div class="chip" data-val="pierna2" onclick="selectRutina(this)">Pierna 2</div>
-    </div>
+  <!-- Selector modo: Gym / Running -->
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="btn btn-primary" id="btn-modo-gym" style="flex:1" onclick="setModoEntreno('gym')">🏋️ Gimnasio</button>
+    <button class="btn btn-ghost" id="btn-modo-run" style="flex:1" onclick="setModoEntreno('run')">🏃 Running</button>
   </div>
 
-  <div id="ejercicios-container"></div>
+  <!-- ── MODO GYM ── -->
+  <div id="entreno-gym">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Rutina activa</div>
+      <div class="chips" id="chips-rutina">
+        <div class="chip active" data-val="tren_sup1" onclick="selectRutina(this)">Tren Superior A</div>
+        <div class="chip" data-val="tren_sup2" onclick="selectRutina(this)">Tren Superior B</div>
+        <div class="chip" data-val="pierna1" onclick="selectRutina(this)">Pierna 1</div>
+        <div class="chip" data-val="pierna2" onclick="selectRutina(this)">Pierna 2</div>
+      </div>
+    </div>
+    <div id="ejercicios-container"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="guardarEntreno()">💾 Guardar sesión gym</button>
+  </div>
 
-  <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="guardarEntreno()">💾 Guardar sesión</button>
+  <!-- ── MODO RUNNING ── -->
+  <div id="entreno-run" style="display:none">
+    <div class="card">
+      <div class="card-title">🏃 Registro de carrera</div>
+
+      <div class="g2">
+        <div class="field">
+          <label>Distancia (km)</label>
+          <input type="number" id="run-km" placeholder="5.0" step="0.1" min="0" oninput="calcRun()">
+        </div>
+        <div class="field">
+          <label>Tiempo (min)</label>
+          <input type="number" id="run-min" placeholder="30" step="1" min="0" oninput="calcRun()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Tipo de carrera</label>
+        <div class="chips" style="margin-top:4px" id="chips-run-tipo">
+          <div class="chip active" data-val="continuo" onclick="selRunTipo(this)">Continuo</div>
+          <div class="chip" data-val="intervalos" onclick="selRunTipo(this)">Intervalos</div>
+          <div class="chip" data-val="fartlek" onclick="selRunTipo(this)">Fartlek</div>
+          <div class="chip" data-val="rodaje" onclick="selRunTipo(this)">Rodaje suave</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>RPE — Esfuerzo percibido</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+          <input type="range" id="run-rpe" min="1" max="10" value="7" oninput="calcRun()" style="flex:1;accent-color:var(--acc)">
+          <div style="font-family:var(--fd);font-size:1.4rem;font-weight:700;color:var(--acc);min-width:28px;text-align:center" id="run-rpe-val">7</div>
+          <div style="font-size:0.72rem;color:var(--muted);min-width:64px" id="run-rpe-lbl">Fuerte</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Notas (opcional)</label>
+        <textarea id="run-notas" placeholder="Cómo te sentiste, ruta, condiciones…" style="min-height:56px"></textarea>
+      </div>
+
+      <!-- Stats calculados -->
+      <div id="run-stats" style="display:none;margin-top:4px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+          <div class="stat-box">
+            <div class="stat-val c-acc" id="run-stat-ritmo">—</div>
+            <div class="stat-lbl">min/km</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val c-acc3" id="run-stat-kcal">—</div>
+            <div class="stat-lbl">kcal</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val c-acc2" id="run-stat-vel">—</div>
+            <div class="stat-lbl">km/h</div>
+          </div>
+        </div>
+        <!-- Barra de zona de esfuerzo -->
+        <div id="run-zona-box" style="background:var(--s2);border-radius:8px;padding:10px 12px;font-size:0.8rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="color:var(--muted2)">Zona de entrenamiento</span>
+            <span style="font-weight:600" id="run-zona-nombre">—</span>
+          </div>
+          <div class="bar-wrap"><div class="bar-fill" id="run-zona-bar" style="background:var(--acc)"></div></div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:6px" id="run-zona-desc">—</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="guardarRun()">💾 Guardar carrera</button>
+  </div>
 </div>
 
 <!-- ══════════════ TAB: PROGRESO ══════════════ -->
@@ -401,6 +479,7 @@ textarea{resize:vertical;min-height:72px}
     <button class="btn btn-ghost btn-sm" id="ptab-btn-medidas" onclick="setProgresoTab('medidas')" style="white-space:nowrap">📏 Medidas</button>
     <button class="btn btn-ghost btn-sm" id="ptab-btn-gemelo" onclick="setProgresoTab('gemelo')" style="white-space:nowrap">🧍 Gemelo</button>
     <button class="btn btn-ghost btn-sm" id="ptab-btn-ejercicios" onclick="setProgresoTab('ejercicios')" style="white-space:nowrap">💪 Ejercicios</button>
+    <button class="btn btn-ghost btn-sm" id="ptab-btn-running" onclick="setProgresoTab('running')" style="white-space:nowrap">🏃 Running</button>
     <button class="btn btn-ghost btn-sm" id="ptab-btn-historial" onclick="setProgresoTab('historial')" style="white-space:nowrap">📅 Historial</button>
   </div>
 
@@ -536,6 +615,33 @@ textarea{resize:vertical;min-height:72px}
         <div id="progreso-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;text-align:center"></div>
       </div>
       <div id="progreso-ejercicio" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- ── RUNNING ── -->
+  <div id="ptab-running" style="display:none">
+    <!-- Stats resumen -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="stat-box"><div class="stat-val c-acc" id="run-total-km">—</div><div class="stat-lbl">km totales</div></div>
+      <div class="stat-box"><div class="stat-val c-acc3" id="run-total-runs">—</div><div class="stat-lbl">carreras</div></div>
+      <div class="stat-box"><div class="stat-val c-acc2" id="run-mejor-ritmo">—</div><div class="stat-lbl">mejor ritmo</div></div>
+    </div>
+
+    <!-- Selector métrica gráfica -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" id="btn-run-dist" onclick="setRunGrafMode('distancia')" style="flex:1">Distancia</button>
+      <button class="btn btn-ghost btn-sm" id="btn-run-ritmo" onclick="setRunGrafMode('ritmo')" style="flex:1">Ritmo</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" id="run-graf-title">📏 Distancia por sesión (km)</div>
+      <svg id="run-graf-svg" width="100%" height="150" style="overflow:visible"></svg>
+    </div>
+
+    <!-- Historial de carreras -->
+    <div class="card">
+      <div class="card-title">🗂 Historial de carreras</div>
+      <div id="run-historial-lista"></div>
     </div>
   </div>
 
@@ -1402,6 +1508,7 @@ function saveStorage(key, val) {
 
 let dias = loadStorage('fl_dias', []);
 let entrenos = loadStorage('fl_entrenos', []);
+let runs = loadStorage('fl_runs', []);
 let rutinaActiva = 'tren_sup1';
 let actividadHoy = 'ninguna';
 
@@ -1926,6 +2033,258 @@ async function guardarEntreno() {
 }
 
 // ═══════════════════════════════════════════
+//  RUNNING — MÓDULO COMPLETO
+// ═══════════════════════════════════════════
+let modoEntreno = 'gym';   // 'gym' | 'run'
+let runTipoActivo = 'continuo';
+let runGrafMode = 'distancia';
+
+const RPE_LABELS = ['','Muy suave','Suave','Moderado','Moderado','Algo duro','Duro','Fuerte','Muy fuerte','Máximo esfuerzo','Límite total'];
+const ZONAS = [
+  {min:1,max:3, nombre:'Z1 Recuperación', color:'#60a5fa', desc:'Ritmo muy cómodo, conversación fluida'},
+  {min:4,max:5, nombre:'Z2 Base aeróbica', color:'#34d399', desc:'Quemas grasa, construyes resistencia'},
+  {min:6,max:7, nombre:'Z3 Tempo',         color:'#c8f542', desc:'Ritmo controlado, algo incómodo'},
+  {min:8,max:9, nombre:'Z4 Umbral',        color:'#fb923c', desc:'Difícil sostener, mejora la velocidad'},
+  {min:10,max:10,nombre:'Z5 Máximo',       color:'#f87171', desc:'Intervalos cortos, mejora VO2max'},
+];
+
+function setModoEntreno(modo) {
+  modoEntreno = modo;
+  document.getElementById('entreno-gym').style.display = modo==='gym' ? 'block' : 'none';
+  document.getElementById('entreno-run').style.display = modo==='run' ? 'block' : 'none';
+  document.getElementById('btn-modo-gym').className = 'btn ' + (modo==='gym' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('btn-modo-run').className = 'btn ' + (modo==='run' ? 'btn-primary' : 'btn-ghost');
+  if (modo==='run') calcRun();
+}
+
+function selRunTipo(el) {
+  document.getElementById('chips-run-tipo').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  runTipoActivo = el.dataset.val;
+}
+
+function calcRun() {
+  const km   = parseFloat(document.getElementById('run-km')?.value) || 0;
+  const min  = parseFloat(document.getElementById('run-min')?.value) || 0;
+  const rpe  = parseInt(document.getElementById('run-rpe')?.value)   || 7;
+
+  // RPE label
+  const rpeValEl = document.getElementById('run-rpe-val');
+  const rpeLblEl = document.getElementById('run-rpe-lbl');
+  if (rpeValEl) rpeValEl.textContent = rpe;
+  if (rpeLblEl) rpeLblEl.textContent = RPE_LABELS[rpe] || '';
+
+  if (!km || !min) { document.getElementById('run-stats').style.display='none'; return; }
+
+  const ritmoDecimal = min / km;                   // min/km
+  const ritmoMin     = Math.floor(ritmoDecimal);
+  const ritmoSeg     = Math.round((ritmoDecimal - ritmoMin) * 60);
+  const ritmoStr     = `${ritmoMin}:${String(ritmoSeg).padStart(2,'0')}`;
+  const vel          = parseFloat((km / (min/60)).toFixed(1));
+  const kcal         = Math.round(calcKcalTrote(km, min));
+
+  document.getElementById('run-stat-ritmo').textContent = ritmoStr;
+  document.getElementById('run-stat-kcal').textContent  = kcal;
+  document.getElementById('run-stat-vel').textContent   = vel;
+  document.getElementById('run-stats').style.display    = 'block';
+
+  // Zona de entrenamiento basada en RPE
+  const zona = ZONAS.find(z => rpe >= z.min && rpe <= z.max) || ZONAS[2];
+  const pct  = Math.round((rpe / 10) * 100);
+  document.getElementById('run-zona-nombre').textContent   = zona.nombre;
+  document.getElementById('run-zona-nombre').style.color   = zona.color;
+  document.getElementById('run-zona-bar').style.width      = pct + '%';
+  document.getElementById('run-zona-bar').style.background = zona.color;
+  document.getElementById('run-zona-desc').textContent     = zona.desc;
+}
+
+async function guardarRun() {
+  const km   = parseFloat(document.getElementById('run-km')?.value) || 0;
+  const min  = parseFloat(document.getElementById('run-min')?.value) || 0;
+  if (!km || !min) { showToast('Completa distancia y tiempo ⚠️'); return; }
+
+  const rpe   = parseInt(document.getElementById('run-rpe')?.value) || 7;
+  const notas = document.getElementById('run-notas')?.value || '';
+  const hoy   = getTodayKey();
+
+  const ritmoDecimal = min / km;
+  const ritmoMin = Math.floor(ritmoDecimal);
+  const ritmoSeg = Math.round((ritmoDecimal - ritmoMin) * 60);
+  const ritmoStr = `${ritmoMin}:${String(ritmoSeg).padStart(2,'0')}`;
+  const vel   = parseFloat((km / (min/60)).toFixed(1));
+  const kcal  = Math.round(calcKcalTrote(km, min));
+  const zona  = ZONAS.find(z => rpe >= z.min && rpe <= z.max) || ZONAS[2];
+
+  const entrada = {
+    fecha: hoy,
+    fechaLabel: new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'}),
+    km, min, ritmo: ritmoStr, ritmoDecimal: parseFloat(ritmoDecimal.toFixed(4)),
+    vel, kcal, rpe, zona: zona.nombre, tipo: runTipoActivo, notas
+  };
+
+  // Guardar/reemplazar del mismo día
+  const idx = runs.findIndex(r => r.fecha === hoy);
+  if (idx >= 0) runs[idx] = entrada; else runs.push(entrada);
+  saveStorage('fl_runs', runs);
+
+  // Limpiar form
+  document.getElementById('run-km').value  = '';
+  document.getElementById('run-min').value = '';
+  document.getElementById('run-notas').value = '';
+  document.getElementById('run-rpe').value = 7;
+  calcRun();
+
+  showToast(`🏃 ${km}km en ${min}min guardado · ${ritmoStr}/km ✓`);
+
+  // Sync Sheets (opcional — misma hoja Entrenos)
+  try {
+    await scriptPost({
+      sheet: 'Entrenos',
+      rows: [[hoy, `Running ${runTipoActivo}`, kcal, `${km}km`, ritmoStr, rpe+'RPE', '', '', '', '', '', '']]
+    });
+  } catch(e) { console.warn('Sheets run sync:', e.message); }
+}
+
+function setRunGrafMode(mode) {
+  runGrafMode = mode;
+  document.getElementById('btn-run-dist').className  = 'btn btn-sm ' + (mode==='distancia'?'btn-primary':'btn-ghost');
+  document.getElementById('btn-run-ritmo').className = 'btn btn-sm ' + (mode==='ritmo'?'btn-primary':'btn-ghost');
+  renderRunning();
+}
+
+function renderRunning() {
+  const sorted = [...runs].sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  // Stats globales
+  const totalKm    = parseFloat(sorted.reduce((s,r)=>s+r.km,0).toFixed(1));
+  const mejorRitmo = sorted.length ? sorted.reduce((best,r) => r.ritmoDecimal < best.ritmoDecimal ? r : best, sorted[0]) : null;
+  document.getElementById('run-total-km').textContent    = totalKm || '—';
+  document.getElementById('run-total-runs').textContent  = sorted.length || '—';
+  document.getElementById('run-mejor-ritmo').textContent = mejorRitmo ? mejorRitmo.ritmo : '—';
+
+  // Gráfica
+  const svg = document.getElementById('run-graf-svg');
+  if (!svg) return;
+  const W = svg.parentElement?.clientWidth || 320;
+  const H = 150;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.innerHTML = '';
+
+  if (sorted.length < 2) {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', W/2); t.setAttribute('y', H/2);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278'); t.setAttribute('font-size','12');
+    t.textContent = 'Registra al menos 2 carreras para ver la gráfica';
+    svg.appendChild(t);
+  } else {
+    const vals  = sorted.map(r => runGrafMode==='distancia' ? r.km : r.ritmoDecimal);
+    const color = runGrafMode==='distancia' ? 'var(--acc)' : 'var(--acc2)';
+    const min   = Math.min(...vals)*0.95, max=Math.max(...vals)*1.05;
+    const pad   = {t:14,r:16,b:28,l:36};
+    const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+    // Para ritmo: menor = mejor, invertir eje
+    const yFn = runGrafMode==='distancia'
+      ? v => pad.t + cH - ((v-min)/(max-min||1))*cH
+      : v => pad.t + ((v-min)/(max-min||1))*cH;  // invertido
+
+    const pts = sorted.map((r,i) => ({
+      x: pad.l + (i/(sorted.length-1))*cW,
+      y: yFn(vals[i]),
+      v: vals[i], r,
+      lbl: (r.fecha||'').slice(0,10).slice(5)
+    }));
+
+    // Área
+    const area = `M${pts[0].x},${pad.t+cH} `+pts.map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')+` L${pts[pts.length-1].x},${pad.t+cH} Z`;
+    const ap = document.createElementNS('http://www.w3.org/2000/svg','path');
+    ap.setAttribute('d',area); ap.setAttribute('fill',color); ap.setAttribute('opacity','0.12');
+    svg.appendChild(ap);
+
+    const lp = 'M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+    const line = document.createElementNS('http://www.w3.org/2000/svg','path');
+    line.setAttribute('d',lp); line.setAttribute('stroke',color);
+    line.setAttribute('stroke-width','2.5'); line.setAttribute('fill','none'); line.setAttribute('stroke-linecap','round');
+    svg.appendChild(line);
+
+    pts.forEach((p,i) => {
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p.x.toFixed(1)); c.setAttribute('cy',p.y.toFixed(1));
+      c.setAttribute('r', i===0||i===pts.length-1?'5':'3.5');
+      c.setAttribute('fill',color); c.setAttribute('stroke','#0d0f14'); c.setAttribute('stroke-width','2');
+      svg.appendChild(c);
+      if (i===0 || i===pts.length-1 || sorted.length<=6) {
+        const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x', p.x.toFixed(1)); t.setAttribute('y', (p.y-8).toFixed(1));
+        t.setAttribute('text-anchor','middle'); t.setAttribute('fill',color); t.setAttribute('font-size','9');
+        t.textContent = runGrafMode==='distancia' ? p.r.km+'km' : p.r.ritmo;
+        svg.appendChild(t);
+      }
+    });
+    [0, Math.floor(pts.length/2), pts.length-1].forEach(i => {
+      if (!pts[i]) return;
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',pts[i].x.toFixed(1)); t.setAttribute('y',H-4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278'); t.setAttribute('font-size','9');
+      t.textContent = pts[i].lbl; svg.appendChild(t);
+    });
+  }
+
+  // Título gráfica
+  const tituloEl = document.getElementById('run-graf-title');
+  if (tituloEl) tituloEl.textContent = runGrafMode==='distancia' ? '📏 Distancia por sesión (km)' : '⏱ Ritmo por sesión (min/km)';
+
+  // Historial lista
+  const lista = document.getElementById('run-historial-lista');
+  if (!lista) return;
+  if (sorted.length === 0) {
+    lista.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px">Aún no hay carreras registradas</div>';
+    return;
+  }
+  const TIPO_ICONS = {continuo:'🔄', intervalos:'⚡', fartlek:'🌊', rodaje:'🚶'};
+  lista.innerHTML = [...sorted].reverse().map(r => {
+    const zona = ZONAS.find(z => r.rpe >= z.min && r.rpe <= z.max) || ZONAS[2];
+    const fmtFec = (r.fecha||'').slice(0,10);
+    const [y,m,d] = fmtFec.split('-');
+    const fechaLeg = `${d}/${m}/${y}`;
+    return `
+    <div style="border-bottom:1px solid var(--border);padding:12px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:600;font-size:0.9rem">${TIPO_ICONS[r.tipo]||'🏃'} ${r.tipo.charAt(0).toUpperCase()+r.tipo.slice(1)}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">${fechaLeg}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center">
+        <div style="background:var(--s2);border-radius:6px;padding:6px 4px">
+          <div style="font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--acc)">${r.km}</div>
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase">km</div>
+        </div>
+        <div style="background:var(--s2);border-radius:6px;padding:6px 4px">
+          <div style="font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--acc2)">${r.ritmo}</div>
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase">min/km</div>
+        </div>
+        <div style="background:var(--s2);border-radius:6px;padding:6px 4px">
+          <div style="font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--muted2)">${r.min}'</div>
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase">tiempo</div>
+        </div>
+        <div style="background:var(--s2);border-radius:6px;padding:6px 4px">
+          <div style="font-family:var(--fd);font-size:1rem;font-weight:700;color:var(--acc3)">${r.kcal}</div>
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase">kcal</div>
+        </div>
+      </div>
+      ${r.notas ? `<div style="font-size:0.75rem;color:var(--muted2);margin-top:6px;font-style:italic">"${r.notas}"</div>` : ''}
+      <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;background:${zona.color}22;color:${zona.color}">${zona.nombre}</div>
+    </div>`;
+  }).join('');
+}
+
+window.setModoEntreno  = setModoEntreno;
+window.selRunTipo      = selRunTipo;
+window.calcRun         = calcRun;
+window.guardarRun      = guardarRun;
+window.setRunGrafMode  = setRunGrafMode;
+window.renderRunning   = renderRunning;
+
+// ═══════════════════════════════════════════
 //  PROGRESO — SUB-TABS
 // ═══════════════════════════════════════════
 let periodoActivo = 30;
@@ -1934,8 +2293,9 @@ let progresoTabActivo = 'graficas';
 
 function setProgresoTab(tab) {
   progresoTabActivo = tab;
-  ['graficas','medidas','gemelo','ejercicios','historial'].forEach(t => {
-    document.getElementById(`ptab-${t}`).style.display = t===tab ? 'block' : 'none';
+  ['graficas','medidas','gemelo','ejercicios','running','historial'].forEach(t => {
+    const el = document.getElementById(`ptab-${t}`);
+    if (el) el.style.display = t===tab ? 'block' : 'none';
     const btn = document.getElementById(`ptab-btn-${t}`);
     if (btn) btn.className = 'btn btn-sm ' + (t===tab ? 'btn-primary' : 'btn-ghost');
   });
@@ -1943,6 +2303,7 @@ function setProgresoTab(tab) {
   if (tab==='medidas')    renderMedidasHistorial();
   if (tab==='gemelo')     renderGemelo();
   if (tab==='ejercicios') renderSelectEjercicios();
+  if (tab==='running')    renderRunning();
   if (tab==='historial')  renderHistorialDias();
 }
 
