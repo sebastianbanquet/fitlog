@@ -270,10 +270,12 @@ textarea{resize:vertical;min-height:72px}
         <img id="food-preview-img" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;display:block">
         <button onclick="clearFoodPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.65);border:none;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:0.85rem">✕</button>
       </div>
-      <button class="btn btn-primary btn-full" id="btn-analizar-foto" style="margin-top:12px;display:none" onclick="analizarFotoComida()">Analizar con IA →</button>
+      <button class="btn btn-primary btn-full" id="btn-analizar-foto" style="margin-top:12px;display:none" onclick="analizarFotoComida()">🤖 Analizar con IA →</button>
       <div id="food-loader" style="display:none;align-items:center;gap:10px;padding:14px 0;font-size:0.85rem;color:var(--muted)">
         <div class="spinner"></div> Identificando alimentos…
       </div>
+      <div id="foto-error-box" style="display:none;background:#2a1515;border:1px solid #5a2020;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:0.8rem;color:#f87171;line-height:1.5"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:0.72rem;color:var(--muted)" onclick="testearApiKey()">🔧 Probar conexión IA</button>
     </div>
 
     <!-- ── MODO LISTA ── -->
@@ -1010,7 +1012,7 @@ async function analizarFotoComida() {
         'X-Title': 'FitLog'
       },
       body: JSON.stringify({
-        model: 'google/gemini-flash-1.5-8b',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [{
           role: 'user',
           content: [
@@ -1023,15 +1025,21 @@ async function analizarFotoComida() {
     });
 
     if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Error ${resp.status}`);
+      const errBody = await resp.text().catch(() => '');
+      let errMsg = `Error HTTP ${resp.status}`;
+      try { const j = JSON.parse(errBody); errMsg = j.error?.message || j.message || errMsg; } catch {}
+      if (resp.status === 401) errMsg = 'API key inválida o sin créditos (401)';
+      if (resp.status === 402) errMsg = 'Sin créditos en OpenRouter (402) — recarga en openrouter.ai';
+      if (resp.status === 429) errMsg = 'Límite de velocidad alcanzado, espera 1 min (429)';
+      throw new Error(errMsg);
     }
 
     const data = await resp.json();
     const generated = data.choices?.[0]?.message?.content || '';
+    if (!generated) throw new Error('La IA no devolvió contenido — intenta de nuevo');
     const clean = generated.replace(/```json|```/g, '').trim();
     const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No se pudo leer la respuesta de la IA');
+    if (!jsonMatch) throw new Error('Respuesta inesperada de la IA: ' + clean.slice(0,80));
 
     const parsed = JSON.parse(jsonMatch[0]);
     (parsed.alimentos || []).forEach(a => {
@@ -1051,13 +1059,42 @@ async function analizarFotoComida() {
     showToast(`${parsed.alimentos?.length || 0} alimentos detectados ✓`);
 
   } catch(err) {
-    showToast('Error al analizar: ' + err.message);
+    const errBox = document.getElementById('foto-error-box');
+    if (errBox) { errBox.style.display = 'block'; errBox.textContent = '⚠️ ' + err.message; }
+    showToast('Error IA: ' + err.message);
     console.error(err);
   } finally {
     document.getElementById('food-loader').style.display = 'none';
     btn.disabled = false;
   }
 }
+
+async function testearApiKey() {
+  const errBox = document.getElementById('foto-error-box');
+  if (errBox) { errBox.style.display='block'; errBox.style.color='var(--muted2)'; errBox.textContent='⏳ Probando conexión con OpenRouter…'; }
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/auth/key', {
+      headers: { 'Authorization': 'Bearer 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' }
+    });
+    const data = await resp.json();
+    const limit = data.data?.limit;
+    const used  = data.data?.usage;
+    const label = data.data?.label || 'sin nombre';
+    if (!resp.ok) {
+      errBox.style.color = '#f87171';
+      errBox.textContent = `❌ API key inválida (${resp.status}) — ve a openrouter.ai y crea una nueva key`;
+    } else if (limit !== null && used >= limit) {
+      errBox.style.color = '#f87171';
+      errBox.textContent = `❌ Sin créditos: usados $${used?.toFixed(3)} de $${limit} — recarga en openrouter.ai/credits`;
+    } else {
+      errBox.style.color = 'var(--acc)';
+      errBox.textContent = `✅ Conexión OK · Key: ${label} · Créditos restantes: $${(limit - used)?.toFixed(3) || '∞'}`;
+    }
+  } catch(e) {
+    if (errBox) { errBox.style.color='#f87171'; errBox.textContent = '❌ No se pudo conectar: ' + e.message; }
+  }
+}
+window.testearApiKey = testearApiKey;
 
 // ── LISTA MANUAL ──
 function selCat(el) {
@@ -1966,7 +2003,7 @@ function renderLineChart(svgId, data, valFns, colors, labels, statsId, unit) {
       const v = valFn(d);
       const x = pad.l + (i/(data.length-1))*cW;
       const y = pad.t + cH - ((v-min)/(max-min))*cH;
-      return {x, y, v, lbl:(d.fecha||'').slice(5)};
+      return {x, y, v, lbl:(d.fecha||'').slice(0,10).slice(5)};
     }).filter(p=>p.v>0);
 
     // Área degradada
@@ -2083,7 +2120,7 @@ function renderLineChartDoble(svgId, data, statsId) {
     const t=document.createElementNS('http://www.w3.org/2000/svg','text');
     t.setAttribute('x',x.toFixed(1)); t.setAttribute('y',H-4);
     t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#5a6278'); t.setAttribute('font-size','9');
-    t.textContent=(data[i].fecha||'').slice(5); svg.appendChild(t);
+    t.textContent=(data[i].fecha||'').slice(0,10).slice(5); svg.appendChild(t);
   });
 
   if (statsId) {
@@ -2530,10 +2567,18 @@ function verProgreso() {
   if(toggleWrap) toggleWrap.style.display='flex';
   if(grafWrap) grafWrap.style.display='block';
 
+  // Función para formatear fecha legible (maneja tanto "2024-10-09" como "2024-10-09T05:00:00.000Z")
+  const fmtFecha = f => {
+    const d = f ? f.slice(0,10) : '';            // tomar solo YYYY-MM-DD
+    if (!d) return f;
+    const [,m,dia] = d.split('-');
+    return `${dia}-${m}`;                         // ej: 09-10
+  };
+
   const sesData = filtradas.map(e => {
     const sets=e.ejercicios[ejId];
     const pesoMax=Math.max(...sets.map(s=>s.peso||0));
-    const volTotal=sets.reduce((a,s)=>a+(s.peso||0)*(s.reps||0),0);
+    const volTotal=Math.round(sets.reduce((a,s)=>a+(s.peso||0)*(s.reps||0),0) * 100) / 100;
     return {fecha:e.fecha, pesoMax, volTotal};
   });
 
@@ -2553,7 +2598,7 @@ function verProgreso() {
     const pts=sesData.map((s,i)=>({
       x:pad.l+(i/(sesData.length-1||1))*cW,
       y:pad.t+cH-((vals[i]-min)/(max-min||1))*cH,
-      v:vals[i], lbl:s.fecha.slice(5)
+      v:vals[i], lbl:fmtFecha(s.fecha)
     }));
 
     // Área
@@ -2579,7 +2624,7 @@ function verProgreso() {
         const t=document.createElementNS('http://www.w3.org/2000/svg','text');
         t.setAttribute('x',p.x.toFixed(1)); t.setAttribute('y',(p.y-7).toFixed(1));
         t.setAttribute('text-anchor','middle'); t.setAttribute('fill',color);
-        t.setAttribute('font-size','9'); t.textContent=p.v;
+        t.setAttribute('font-size','9'); t.textContent=typeof p.v==='number'?parseFloat(p.v.toFixed(2)):p.v;
         svg.appendChild(t);
       }
     });
@@ -2595,12 +2640,13 @@ function verProgreso() {
 
   // Stats
   const vals=sesData.map(s=>grafMode==='peso'?s.pesoMax:s.volTotal);
-  const first=vals[0], last=vals[vals.length-1], diff=last-first;
+  const first=vals[0], last=vals[vals.length-1];
+  const diff=parseFloat((last-first).toFixed(2));
   const pct=first>0?((diff/first)*100).toFixed(1):0;
   const statsEl=document.getElementById('progreso-stats');
   if(statsEl) statsEl.innerHTML=`
-    <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${first}</div><div class="stat-lbl">Inicio</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.2rem">${last}</div><div class="stat-lbl">Actual</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:#818cf8;font-size:1.2rem">${parseFloat(first.toFixed(2))}</div><div class="stat-lbl">Inicio</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:var(--acc);font-size:1.2rem">${parseFloat(last.toFixed(2))}</div><div class="stat-lbl">Actual</div></div>
     <div class="stat-box"><div class="stat-val" style="color:${diff>=0?'var(--acc)':'var(--acc3)'};font-size:1.2rem">${diff>=0?'+':''}${diff}</div><div class="stat-lbl">${pct>=0?'+':''}${pct}%</div></div>`;
 
   // Tabla últimas sesiones
@@ -2610,8 +2656,8 @@ function verProgreso() {
   ultimas.forEach(e=>{
     const sets=e.ejercicios[ejId];
     sets.forEach((s,i)=>{
-      const vol=(s.peso||0)*(s.reps||0);
-      html+=`<tr><td>${i===0?e.fecha.slice(5):''}</td><td>S${i+1}</td><td style="font-weight:600">${s.peso||0}kg</td><td>${s.reps||0}</td><td style="color:var(--acc)">${vol}</td></tr>`;
+      const vol=parseFloat(((s.peso||0)*(s.reps||0)).toFixed(2));
+      html+=`<tr><td>${i===0?fmtFecha(e.fecha):''}</td><td>S${i+1}</td><td style="font-weight:600">${s.peso||0}kg</td><td>${s.reps||0}</td><td style="color:var(--acc)">${vol}</td></tr>`;
     });
   });
   html+='</tbody></table>';
