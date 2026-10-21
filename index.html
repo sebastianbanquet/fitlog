@@ -1934,9 +1934,15 @@ async function guardarDia() {
   try {
     await initSheets();
     await syncDiaToSheets(entrada);
+    // Limpiar WIPs al guardar exitosamente
+    try { localStorage.removeItem('fl_diario_wip'); } catch {}
+    try { localStorage.removeItem('fl_comidas_' + hoy); } catch {}
     showToast('Guardado en Google Sheets ✓');
   } catch(err) {
     console.error('Sheets sync error:', err);
+    // También limpiar aunque falle Sheets (datos ya en fl_dias)
+    try { localStorage.removeItem('fl_diario_wip'); } catch {}
+    try { localStorage.removeItem('fl_comidas_' + hoy); } catch {}
     showToast('Guardado local ✓ (Sheets: verifica permisos)');
   } finally {
     if (btnGuardar) { btnGuardar.disabled=false; btnGuardar.textContent='Guardar día'; }
@@ -3303,6 +3309,33 @@ setModoComida('foto');
 // ── Restaurar comidas del día (fix bug recarga) ──
 cargarComidasHoy();
 
+// ── Restaurar WIP diario (campos aún no guardados) ──
+(function restaurarDiarioWip() {
+  const wip = loadStorage('fl_diario_wip', null);
+  if (!wip || wip.fecha !== getTodayKey()) return;
+  if (wip.pasos) document.getElementById('inp-pasos').value = wip.pasos;
+  if (wip.agua)  document.getElementById('inp-agua').value  = wip.agua;
+  if (wip.peso)  document.getElementById('inp-peso').value  = wip.peso;
+  if (wip.sueno) document.getElementById('inp-sueno').value = wip.sueno;
+  if (wip.notas) document.getElementById('inp-notas').value = wip.notas;
+  if (wip.km)    document.getElementById('inp-km').value    = wip.km;
+  if (wip.tmin)  document.getElementById('inp-tmin').value  = wip.tmin;
+  if (wip.actividad && wip.actividad !== 'ninguna') {
+    actividadHoy = wip.actividad;
+    document.querySelectorAll('#chips-actividad .chip').forEach(c=>{
+      if(c.dataset.val===actividadHoy) c.classList.add('active'); else c.classList.remove('active');
+    });
+    document.getElementById('trote-box').style.display = actividadHoy==='trote' ? 'block' : 'none';
+    const isGym = ['tren_sup1','tren_sup2','pierna1','pierna2'].includes(actividadHoy);
+    document.getElementById('gym-kcal-box').style.display = isGym ? 'block' : 'none';
+    if (isGym) {
+      document.getElementById('gym-kcal-val').textContent = calcKcalGym(actividadHoy, null);
+      document.getElementById('gym-kcal-desc').textContent = `Estimado para ${RUTINAS[actividadHoy]?.nombre||actividadHoy}`;
+    }
+  }
+  updateBalance();
+})();
+
 // Llenar hoy si ya hay datos guardados
 const todayData = dias.find(d=>d.fecha===getTodayKey());
 if (todayData) {
@@ -3344,6 +3377,31 @@ if (todayData) {
   const el = document.getElementById(id);
   if (el) el.addEventListener('input', updateBalance);
 });
+
+// ── Auto-guardar cuando la app va al background (PWA) ──
+function autoGuardarEstado() {
+  // 1. Comidas en progreso
+  persistirComidasHoy();
+  // 2. Campos del diario (pasos, agua, peso, sueño, notas) que aún no se han "Guardado día"
+  const wip = {
+    pasos: document.getElementById('inp-pasos')?.value || '',
+    agua:  document.getElementById('inp-agua')?.value  || '',
+    peso:  document.getElementById('inp-peso')?.value  || '',
+    sueno: document.getElementById('inp-sueno')?.value || '',
+    notas: document.getElementById('inp-notas')?.value || '',
+    km:    document.getElementById('inp-km')?.value    || '',
+    tmin:  document.getElementById('inp-tmin')?.value  || '',
+    actividad: actividadHoy,
+    fecha: getTodayKey()
+  };
+  saveStorage('fl_diario_wip', wip);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') autoGuardarEstado();
+});
+window.addEventListener('pagehide', autoGuardarEstado);    // iOS Safari
+window.addEventListener('beforeunload', autoGuardarEstado); // Desktop
 
 renderEjercicios();
 initMedidaMes();
